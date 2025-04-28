@@ -1,0 +1,49 @@
+# Task ID: 9
+# Title: Implement Dashboard Page in Frontend
+# Status: done
+# Dependencies: 5, 8
+# Priority: medium
+# Description: Create the dashboard page that displays summary statistics for the active campaign.
+# Details:
+1. Create DashboardPage in src/features/dashboard/pages/DashboardPage.tsx
+2. Use useAuth and useCampaign hooks to access authentication and campaign context
+3. Use react-query (useQuery) to fetch dashboard summary data for the activeCampaignId
+4. Implement loading states using Shadcn Skeleton components
+5. Display fetched statistics using Shadcn Card components
+6. Handle the case where activeCampaignId is null or no campaigns are available
+7. Add error handling for failed API requests
+
+# Test Strategy:
+Test the dashboard with various campaign IDs. Verify that loading states are displayed correctly. Test error handling by simulating API failures. Verify that the dashboard updates when the active campaign changes.
+
+# Subtasks:
+## 1. Implement Error Handling [done]
+### Dependencies: None
+### Description: Add error handling for the API request (e.g., display an error message if the fetch fails).
+### Details:
+
+
+## 2. Implement Data Display [done]
+### Dependencies: None
+### Description: Once data is fetched, display the statistics using Shadcn Card components. Structure the layout for the dashboard summary.
+### Details:
+
+
+## 3. Implement Loading State [done]
+### Dependencies: None
+### Description: Use Shadcn Skeleton components to display a loading state while the data is being fetched.
+### Details:
+
+
+## 4. Implement Data Fetching with React Query [done]
+### Dependencies: None
+### Description: Create the useQuery hook to fetch dashboard summary data for the activeCampaignId from the backend endpoint (Task 5). Handle the case where activeCampaignId is null.
+### Details:
+
+
+## 5. Create Dashboard Page Component Structure [done]
+### Dependencies: None
+### Description: Set up the basic file src/features/dashboard/pages/DashboardPage.tsx and component structure. Import necessary hooks (useAuth, useCampaign).
+### Details:
+
+

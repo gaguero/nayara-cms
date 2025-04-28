@@ -1,0 +1,88 @@
+# Task ID: 3
+# Title: Implement JWT Authentication in Backend
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Create the authentication module in the NestJS backend with JWT support, including user registration, login, and authentication guards.
+# Details:
+1. Install JWT packages: `npm install @nestjs/jwt passport passport-jwt @nestjs/passport bcrypt`
+2. Create an AuthModule in src/auth/
+3. Implement UserService and UserController for basic user management
+4. Create DTOs for login and registration
+5. Implement JWT strategy in src/auth/strategies/jwt.strategy.ts
+6. Create JwtAuthGuard for protecting routes
+7. Implement login endpoint that returns JWT token
+8. Implement /auth/status endpoint to check authentication status
+9. Add User model to Prisma schema with password hashing
+10. Run `npx prisma migrate dev` to create the database tables
+
+# Test Strategy:
+Test user registration and login endpoints using Postman or curl. Verify that JWT tokens are generated correctly and can be used to access protected routes. Test the auth status endpoint to ensure it correctly identifies authenticated users.
+
+# Subtasks:
+## 1. Set up User model and database migration [done]
+### Dependencies: None
+### Description: Create the User model in Prisma schema with necessary fields for authentication and run migration to set up the database tables.
+### Details:
+1. Add User model to Prisma schema in `prisma/schema.prisma` with fields: id, email, password, name, createdAt, updatedAt
+2. Ensure email is unique and properly indexed
+3. Run `npx prisma migrate dev --name add-user-model` to create the database tables
+4. Generate Prisma client with `npx prisma generate`
+5. Test by checking the database structure to confirm tables were created correctly
+
+## 2. Create Auth module with User service [done]
+### Dependencies: 3.1
+### Description: Set up the authentication module structure and implement the UserService for managing user data.
+### Details:
+1. Install required packages: `npm install @nestjs/jwt passport passport-jwt @nestjs/passport bcrypt`
+2. Create `src/auth/auth.module.ts` with imports for JwtModule and PassportModule
+3. Create `src/auth/user.service.ts` with methods for:
+   - findUserByEmail
+   - createUser (with password hashing using bcrypt)
+   - validateUser (for login)
+4. Create DTOs in `src/auth/dto/` folder:
+   - create-user.dto.ts
+   - login.dto.ts
+5. Test UserService with unit tests to verify user creation and password hashing works
+
+## 3. Implement JWT strategy and Auth service [done]
+### Dependencies: 3.2
+### Description: Create the JWT strategy for Passport and implement the AuthService for handling authentication logic.
+### Details:
+1. Create `src/auth/strategies/jwt.strategy.ts` implementing PassportStrategy
+2. Configure JWT strategy with secret key and token extraction
+3. Implement validate method to extract user from token payload
+4. Create `src/auth/auth.service.ts` with methods for:
+   - validateUserCredentials (using UserService)
+   - login (generating JWT token)
+   - register (creating new user)
+5. Configure JwtModule in AuthModule with appropriate token expiration and secret
+6. Test JWT token generation and validation with unit tests
+
+## 4. Create Auth guards and decorators [done]
+### Dependencies: 3.3
+### Description: Implement authentication guards to protect routes and create custom decorators for user access.
+### Details:
+1. Create `src/auth/guards/jwt-auth.guard.ts` extending AuthGuard from @nestjs/passport
+2. Create `src/auth/decorators/current-user.decorator.ts` to extract the current user from request
+3. Create `src/auth/guards/optional-jwt-auth.guard.ts` for routes where authentication is optional
+4. Update AuthModule to provide the guards
+5. Test guards by creating a simple protected route and verifying access control works
+
+## 5. Implement Auth controller with endpoints [done]
+### Dependencies: 3.3, 3.4
+### Description: Create the AuthController with registration, login, and status check endpoints.
+### Details:
+1. Create `src/auth/auth.controller.ts` with endpoints:
+   - POST /auth/register - for user registration
+   - POST /auth/login - for user login (returns JWT token)
+   - GET /auth/status - to check authentication status (protected with JwtAuthGuard)
+2. Implement proper request validation using the DTOs
+3. Add appropriate error handling for duplicate emails, invalid credentials, etc.
+4. Update AuthModule to include the controller
+5. Test all endpoints using Postman or similar tool to verify:
+   - User registration works and passwords are hashed
+   - Login returns valid JWT token
+   - Status endpoint returns user info when authenticated
+   - Protected routes reject unauthenticated requests
+

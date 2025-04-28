@@ -1,0 +1,109 @@
+# Task ID: 12
+# Title: Implement Media Library Backend
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Create the media library module in the backend for managing media assets and requirements per campaign.
+# Details:
+1. Create MediaLibraryModule in src/features/media-library/
+2. Define MediaAsset and MediaRequirement models in Prisma schema with relations to Campaign
+3. Create DTOs for media upload, requirement creation, and responses
+4. Implement MediaLibraryService with operations for asset and requirement management
+5. Implement MediaLibraryController with endpoints for:
+   - GET /api/v1/campaigns/:campaignId/media-assets (list assets)
+   - POST /api/v1/campaigns/:campaignId/media-assets (upload asset)
+   - DELETE /api/v1/campaigns/:campaignId/media-assets/:id (delete asset)
+   - GET /api/v1/campaigns/:campaignId/media-requirements (list requirements)
+   - POST /api/v1/campaigns/:campaignId/media-requirements (create requirement)
+   - PATCH /api/v1/campaigns/:campaignId/media-requirements/:id (update requirement)
+   - DELETE /api/v1/campaigns/:campaignId/media-requirements/:id (delete requirement)
+6. Configure media file storage using Railway volume
+7. Run `npx prisma migrate dev` to update the database schema
+
+# Test Strategy:
+Test media upload and retrieval. Verify that media assets and requirements are correctly associated with campaigns. Test file type validation and size limits. Test CRUD operations for media requirements.
+
+# Subtasks:
+## 1. Create Media Library Module and Prisma Schema Models [done]
+### Dependencies: None
+### Description: Set up the module structure and define database models for media assets and requirements
+### Details:
+1. Create the MediaLibraryModule directory structure in src/features/media-library/
+2. Add the module file (media-library.module.ts) with basic imports
+3. Update the Prisma schema in schema.prisma to add:
+   - MediaAsset model with fields: id, name, url, fileSize, mimeType, campaignId, createdAt, updatedAt
+   - MediaRequirement model with fields: id, title, description, required (boolean), campaignId, createdAt, updatedAt
+   - Add proper relations to the Campaign model
+4. Run `npx prisma migrate dev` to create a migration and update the database
+5. Test by verifying the migration was successful and the tables were created correctly
+
+## 2. Implement DTOs and Service for Media Assets [done]
+### Dependencies: 12.1
+### Description: Create data transfer objects and service methods for media asset operations
+### Details:
+1. Create DTO files in src/features/media-library/dto/:
+   - create-media-asset.dto.ts (for upload requests)
+   - media-asset.dto.ts (for responses)
+2. Implement MediaLibraryService in media-library.service.ts with methods:
+   - getMediaAssets(campaignId): Retrieve all media assets for a campaign
+   - uploadMediaAsset(campaignId, file, metadata): Upload and store a new media asset
+   - deleteMediaAsset(id, campaignId): Remove a media asset
+3. Configure file storage using Railway volume in the service
+4. Add proper error handling for file operations
+5. Test the service methods using unit tests with mock Prisma client
+
+## 3. Implement DTOs and Service for Media Requirements [done]
+### Dependencies: 12.1
+### Description: Create data transfer objects and service methods for media requirement operations
+### Details:
+1. Create DTO files in src/features/media-library/dto/:
+   - create-media-requirement.dto.ts
+   - update-media-requirement.dto.ts
+   - media-requirement.dto.ts (for responses)
+2. Extend MediaLibraryService with methods:
+   - getMediaRequirements(campaignId): Retrieve all requirements for a campaign
+   - createMediaRequirement(campaignId, data): Create a new requirement
+   - updateMediaRequirement(id, campaignId, data): Update an existing requirement
+   - deleteMediaRequirement(id, campaignId): Remove a requirement
+3. Add validation logic and error handling
+4. Test the service methods using unit tests with mock Prisma client
+
+## 4. Implement Media Assets Controller Endpoints [done]
+### Dependencies: 12.2
+### Description: Create controller endpoints for managing media assets
+### Details:
+1. Create media-library.controller.ts file
+2. Implement the following endpoints:
+   - GET /api/v1/campaigns/:campaignId/media-assets
+     - Add pagination support with query parameters
+     - Add proper authorization checks for campaign access
+   - POST /api/v1/campaigns/:campaignId/media-assets
+     - Use NestJS FileInterceptor for file upload handling
+     - Validate file types and sizes
+     - Return appropriate response with created asset data
+   - DELETE /api/v1/campaigns/:campaignId/media-assets/:id
+     - Add validation to ensure the asset exists and belongs to the campaign
+3. Add proper error handling and HTTP status codes
+4. Test endpoints using integration tests with supertest
+
+## 5. Implement Media Requirements Controller Endpoints [done]
+### Dependencies: 12.3, 12.4
+### Description: Create controller endpoints for managing media requirements
+### Details:
+1. Extend media-library.controller.ts with the following endpoints:
+   - GET /api/v1/campaigns/:campaignId/media-requirements
+     - Add pagination support with query parameters
+     - Add proper authorization checks for campaign access
+   - POST /api/v1/campaigns/:campaignId/media-requirements
+     - Validate input using the create DTO
+     - Return appropriate response with created requirement data
+   - PATCH /api/v1/campaigns/:campaignId/media-requirements/:id
+     - Validate input using the update DTO
+     - Add validation to ensure the requirement exists and belongs to the campaign
+   - DELETE /api/v1/campaigns/:campaignId/media-requirements/:id
+     - Add validation to ensure the requirement exists and belongs to the campaign
+2. Update the MediaLibraryModule to include the controller and service
+3. Add proper error handling and HTTP status codes
+4. Test endpoints using integration tests with supertest
+5. Update the main app module to include the MediaLibraryModule
+

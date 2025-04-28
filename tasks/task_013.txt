@@ -1,0 +1,117 @@
+# Task ID: 13
+# Title: Implement Content Management Frontend
+# Status: done
+# Dependencies: 8, 10
+# Priority: medium
+# Description: Create the content management pages and components in the frontend for creating, editing, and listing content items.
+# Details:
+1. Create content management components in src/features/content-management/components/
+   - ContentList.tsx
+   - ContentForm.tsx
+   - PlatformSelect.tsx
+   - StatusSelect.tsx
+2. Implement hooks in src/features/content-management/hooks/
+   - useContentItems.ts (fetches content items for active campaign)
+3. Create pages in src/features/content-management/pages/
+   - ContentListPage.tsx
+   - NewContentPage.tsx
+   - EditContentPage.tsx
+4. Use react-query for data fetching and mutations
+5. Implement form validation and error handling
+6. Add loading and error states
+
+# Test Strategy:
+Test content creation, editing, and deletion. Verify that content items are correctly displayed in the list. Test form validation and error handling. Verify that the content management pages update when the active campaign changes.
+
+# Subtasks:
+## 1. Create Base Components for Content Management [done]
+### Dependencies: None
+### Description: Implement the foundational components needed for content management including PlatformSelect and StatusSelect components.
+### Details:
+1. Create src/features/content-management/components/ directory
+2. Implement PlatformSelect.tsx component that renders a dropdown for selecting content platforms (e.g., Facebook, Instagram, Twitter)
+3. Implement StatusSelect.tsx component that renders a dropdown for content status (e.g., Draft, Published, Scheduled)
+4. Add appropriate styling using the project's styling approach
+5. Create unit tests for both components to verify they render correctly and handle selection changes
+6. Ensure components are accessible and follow design system guidelines
+7. Test with different screen sizes to ensure responsive behavior
+
+## 2. Implement Data Fetching Hooks with React Query [done]
+### Dependencies: None
+### Description: Create the hooks needed for fetching and managing content data using react-query.
+### Details:
+1. Create src/features/content-management/hooks/ directory
+2. Implement useContentItems.ts hook that:
+   - Uses react-query's useQuery to fetch content items for the active campaign
+   - Handles loading, error, and success states
+   - Includes pagination support if needed
+   - Provides filtering capabilities
+3. Create additional hooks for content mutations:
+   - useCreateContent.ts (for creating new content)
+   - useUpdateContent.ts (for updating existing content)
+   - useDeleteContent.ts (for deleting content)
+4. Implement proper error handling and retry logic
+5. Add tests for all hooks using react-testing-library and msw for API mocking
+
+## 3. Build ContentList Component and List Page [done]
+### Dependencies: 13.1, 13.2
+### Description: Create the ContentList component and the ContentListPage that displays all content items.
+### Details:
+1. Implement ContentList.tsx component that:
+   - Accepts content items as props
+   - Renders a table or grid of content items
+   - Includes sorting and filtering capabilities
+   - Shows relevant content metadata (title, platform, status, created date)
+   - Has actions for edit and delete
+2. Create ContentListPage.tsx in the pages directory that:
+   - Uses the useContentItems hook to fetch data
+   - Renders the ContentList component with fetched data
+   - Handles loading states with a skeleton loader
+   - Displays error messages when fetch fails
+   - Includes a button to create new content
+3. Implement pagination if there are many content items
+4. Add tests for both the component and page
+5. Ensure the list is responsive and works on mobile devices
+
+## 4. Implement ContentForm Component with Validation [done]
+### Dependencies: 13.1, 13.2
+### Description: Create the ContentForm component with form validation for creating and editing content.
+### Details:
+1. Implement ContentForm.tsx component that:
+   - Uses a form library (e.g., Formik, React Hook Form) for form state management
+   - Includes fields for all content properties (title, description, platform, status, etc.)
+   - Uses PlatformSelect and StatusSelect components
+   - Implements validation rules for all fields
+   - Shows validation errors inline
+   - Handles form submission
+   - Supports both create and edit modes
+2. Implement client-side validation for:
+   - Required fields
+   - Character limits
+   - Format validation where applicable
+3. Add proper error handling for API errors
+4. Include a preview capability if applicable
+5. Write comprehensive tests for form validation and submission logic
+6. Ensure the form is accessible with proper labels and ARIA attributes
+
+## 5. Create New and Edit Content Pages [done]
+### Dependencies: 13.2, 13.4
+### Description: Implement the NewContentPage and EditContentPage that use the ContentForm for creating and editing content.
+### Details:
+1. Create NewContentPage.tsx that:
+   - Renders the ContentForm in create mode
+   - Uses useCreateContent hook for form submission
+   - Handles success with a redirect to the content list
+   - Shows appropriate loading states during submission
+   - Displays error messages when submission fails
+2. Create EditContentPage.tsx that:
+   - Fetches existing content data using an ID from the URL
+   - Renders ContentForm in edit mode with pre-populated data
+   - Uses useUpdateContent hook for form submission
+   - Handles loading states for both initial fetch and submission
+   - Shows appropriate error messages
+   - Includes a confirmation dialog for canceling edits
+3. Add navigation between pages (list → new/edit, new/edit → list)
+4. Implement tests for both pages
+5. Add route definitions in the application's router configuration
+

@@ -1,0 +1,52 @@
+# Task ID: 7
+# Title: Implement Campaign Context and Selection in Frontend
+# Status: done
+# Dependencies: 6
+# Priority: high
+# Description: Create the campaign provider and campaign selector component to manage the active campaign context.
+# Details:
+1. Create CampaignProvider in src/providers/CampaignProvider.tsx
+2. Implement campaign state management with:
+   - availableCampaigns (array of {id, name})
+   - activeCampaignId (string | null)
+   - isLoadingCampaigns flag
+3. Fetch campaigns using react-query upon successful authentication
+4. Persist activeCampaignId to localStorage
+5. Set default active campaign if none selected
+6. Create useCampaign hook to access campaign context
+7. Implement CampaignSelector component in src/components/campaign/CampaignSelector.tsx using Shadcn Select or DropdownMenu
+
+# Test Strategy:
+Test campaign fetching and selection. Verify that the active campaign persists across page refreshes. Test the CampaignSelector component with various campaign lists. Verify that changing the active campaign updates the context and localStorage.
+
+# Subtasks:
+## 1. Define Campaign Context interfaces and create CampaignProvider.tsx [done]
+### Dependencies: None
+### Description: Define TypeScript interfaces for Campaign context and create the basic provider component structure.
+### Details:
+
+
+## 2. Implement Campaign state and localStorage persistence [done]
+### Dependencies: None
+### Description: Implement state variables, localStorage persistence for active campaign ID, and update initial state loading.
+### Details:
+
+
+## 3. Implement Campaign Fetching Logic [done]
+### Dependencies: None
+### Description: Implement fetching available campaigns using react-query after user authentication, update state, and handle default active campaign selection.
+### Details:
+
+
+## 4. Create useCampaign Custom Hook [done]
+### Dependencies: None
+### Description: Create a custom hook `useCampaign` to easily consume the CampaignContext.
+### Details:
+
+
+## 5. Implement CampaignSelector Component [done]
+### Dependencies: None
+### Description: Implement a component to display and select the active campaign using Shadcn UI.
+### Details:
+
+

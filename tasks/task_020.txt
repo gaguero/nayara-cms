@@ -1,0 +1,70 @@
+# Task ID: 20
+# Title: Document Deployment Process in deployment.md
+# Status: pending
+# Dependencies: 17, 18, 19
+# Priority: medium
+# Description: Create comprehensive documentation of the entire deployment process in a new memory-bank/deployment.md file, covering all platforms, commands, configurations, and step sequences.
+# Details:
+Create a new file at memory-bank/deployment.md that thoroughly documents the entire deployment process. The documentation should include:
+
+1. **Platform Overview**:
+   - Description of Railway (backend) and Vercel (frontend) platforms
+   - Rationale for platform selection
+   - Account setup instructions
+
+2. **Backend Deployment (Railway)**:
+   - CLI commands used for deployment
+   - Project setup and configuration steps
+   - Environment variable configuration
+   - Database setup and migration process
+   - Monitoring and logging setup
+
+3. **Frontend Deployment (Vercel)**:
+   - Build process and commands
+   - Project configuration details
+   - Environment variable setup
+   - Integration with the backend
+
+4. **Domain Configuration**:
+   - Custom domain setup for both platforms
+   - DNS configuration steps
+   - SSL/TLS certificate setup
+
+5. **Deployment Sequence**:
+   - Step-by-step deployment workflow
+   - Order of operations
+   - Dependencies between deployment steps
+
+6. **Troubleshooting**:
+   - Common issues and their solutions
+   - Debugging techniques
+
+7. **Maintenance Procedures**:
+   - Update/upgrade process
+   - Backup procedures
+
+Use Markdown formatting with clear headings, code blocks for commands, and tables where appropriate. Include screenshots of critical configuration screens if helpful.
+
+# Test Strategy:
+To verify this task has been completed correctly:
+
+1. **Document Existence and Location**:
+   - Confirm the deployment.md file exists in the memory-bank directory
+   - Verify the file uses proper Markdown syntax and formatting
+
+2. **Content Completeness**:
+   - Check that all seven sections listed in the details are present and comprehensive
+   - Verify all CLI commands are accurate by testing a sample of them
+   - Ensure environment variable documentation is complete but does not expose sensitive information
+
+3. **Accuracy Verification**:
+   - Have another team member follow the documentation to perform a test deployment to staging environments
+   - Identify and correct any steps that are unclear or missing
+
+4. **Cross-Reference**:
+   - Compare the documentation against the actual deployed systems to ensure alignment
+   - Verify that any platform-specific details match current platform versions
+
+5. **Readability Assessment**:
+   - Have a team member unfamiliar with the deployment process review the document for clarity
+   - Ensure technical terms are explained or linked to relevant resources

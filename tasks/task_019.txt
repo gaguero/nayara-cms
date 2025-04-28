@@ -1,0 +1,69 @@
+# Task ID: 19
+# Title: Configure Custom Domains for Deployed Services
+# Status: pending
+# Dependencies: 17, 18
+# Priority: low
+# Description: Set up custom domains for the deployed backend (Railway) and frontend (Vercel) services to provide a professional and branded user experience.
+# Details:
+This task involves configuring custom domains for both the backend and frontend services:
+
+**Backend (Railway) Configuration:**
+1. Access the Railway dashboard and navigate to the deployed backend project
+2. Go to the 'Settings' or 'Domains' section
+3. Add the desired custom domain (e.g., api.yourapp.com)
+4. Note the provided DNS records that need to be configured (typically a CNAME record)
+5. Configure SSL/TLS certificates for the domain
+
+**Frontend (Vercel) Configuration:**
+1. Access the Vercel dashboard and select the deployed frontend project
+2. Navigate to the 'Domains' section
+3. Add the desired custom domain (e.g., yourapp.com or www.yourapp.com)
+4. Note the provided DNS records that need to be configured
+5. Ensure SSL/TLS is properly configured
+
+**DNS Configuration:**
+1. Access your domain registrar or DNS provider's dashboard
+2. Add the required DNS records for both services:
+   - For Railway: Typically a CNAME record pointing to the provided Railway URL
+   - For Vercel: Typically a CNAME record for www subdomain and an A record for the apex domain
+3. Set appropriate TTL values (Time To Live)
+
+**Application Configuration:**
+1. Update any hardcoded URLs in the application to use the new custom domains
+2. Update CORS settings in the backend to allow requests from the new frontend domain
+3. Update environment variables in both services if necessary
+
+Note: DNS propagation may take up to 48 hours, though it's often much faster.
+
+# Test Strategy:
+**Testing Strategy:**
+
+1. **DNS Propagation Verification:**
+   - Use tools like `dig`, `nslookup`, or online DNS lookup services to verify DNS records are correctly configured
+   - Check that the records point to the correct Railway and Vercel servers
+
+2. **Domain Accessibility Testing:**
+   - Verify that both domains (frontend and backend) are accessible via web browsers
+   - Ensure that HTTPS is working correctly with valid SSL certificates (check for the lock icon in browsers)
+   - Test both www and non-www versions of the domain if applicable
+
+3. **API Functionality Testing:**
+   - Test API endpoints using the new custom domain
+   - Verify that API requests from the frontend to the backend work correctly
+   - Test with tools like Postman or curl to ensure the backend responds properly
+
+4. **Cross-Origin Testing:**
+   - Verify that CORS is properly configured by making requests from the frontend to the backend
+   - Check browser console for any CORS-related errors
+
+5. **Environment Variable Verification:**
+   - Verify that all environment variables referencing domains have been updated
+   - Test any features that rely on absolute URLs
+
+6. **Browser Compatibility:**
+   - Test the custom domains on different browsers (Chrome, Firefox, Safari, Edge)
+   - Test on both desktop and mobile devices
+
+7. **Performance Check:**
+   - Run a basic performance test to ensure the domain configuration doesn't introduce latency
+   - Use tools like Lighthouse or PageSpeed Insights to verify performance

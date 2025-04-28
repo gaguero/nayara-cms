@@ -1,0 +1,108 @@
+# Task ID: 4
+# Title: Implement Campaign Management Backend
+# Status: done
+# Dependencies: 3
+# Priority: high
+# Description: Create the campaign management module in the backend with CRUD operations for campaigns, restricted to superadmin users.
+# Details:
+1. Create CampaignManagementModule in src/features/campaign-management/
+2. Define Campaign model in Prisma schema with relations to User
+3. Create DTOs for campaign creation, update, and response
+4. Implement CampaignManagementService with CRUD operations
+5. Implement CampaignManagementController with endpoints for:
+   - GET /api/v1/campaigns (list all campaigns)
+   - POST /api/v1/campaigns (create campaign)
+   - GET /api/v1/campaigns/:id (get campaign details)
+   - PATCH /api/v1/campaigns/:id (update campaign)
+   - DELETE /api/v1/campaigns/:id (delete campaign)
+6. Add role-based access control to restrict campaign management to superadmins
+7. Run `npx prisma migrate dev` to update the database schema
+
+# Test Strategy:
+Test all CRUD endpoints using Postman or curl. Verify that only superadmin users can access these endpoints. Test validation of input data and proper error handling.
+
+# Subtasks:
+## 1. Define Campaign Model in Prisma Schema [done]
+### Dependencies: None
+### Description: Create the Campaign model in the Prisma schema with appropriate fields and relations to the User model
+### Details:
+1. Open the Prisma schema file (schema.prisma)
+2. Define a new Campaign model with fields:
+   - id (UUID, primary key)
+   - name (String, required)
+   - description (String, optional)
+   - startDate (DateTime, required)
+   - endDate (DateTime, optional)
+   - isActive (Boolean, default true)
+   - createdAt (DateTime, default now)
+   - updatedAt (DateTime, updated automatically)
+3. Add relation to User model:
+   - createdBy (relation to User model)
+   - createdById (UUID, foreign key)
+4. Run `npx prisma migrate dev --name add-campaign-model` to create the migration
+5. Test by verifying the migration was created correctly and the database schema was updated
+
+## 2. Create Campaign DTOs and Module Structure [done]
+### Dependencies: 4.1
+### Description: Set up the campaign management module structure and define the Data Transfer Objects for campaign operations
+### Details:
+1. Create the module directory structure:
+   - src/features/campaign-management/
+   - src/features/campaign-management/dto/
+   - src/features/campaign-management/entities/
+2. Create the following DTOs in the dto directory:
+   - create-campaign.dto.ts (with validation decorators)
+   - update-campaign.dto.ts (extends partial of create DTO)
+   - campaign-response.dto.ts (for API responses)
+3. Create campaign.entity.ts in the entities directory
+4. Create campaign-management.module.ts file
+5. Test by validating the structure and ensuring all files compile without errors
+
+## 3. Implement Campaign Management Service [done]
+### Dependencies: 4.1, 4.2
+### Description: Create the service layer with CRUD operations for campaign management
+### Details:
+1. Create campaign-management.service.ts in the module directory
+2. Inject PrismaService in the constructor
+3. Implement the following methods:
+   - findAll(): Retrieve all campaigns with pagination
+   - findOne(id: string): Get a single campaign by ID
+   - create(createCampaignDto, userId): Create a new campaign
+   - update(id: string, updateCampaignDto): Update an existing campaign
+   - remove(id: string): Delete a campaign
+4. Add error handling for not found cases and validation errors
+5. Test each method using unit tests with Jest, mocking the PrismaService
+
+## 4. Implement Campaign Management Controller [done]
+### Dependencies: 4.3
+### Description: Create the controller with REST endpoints for campaign CRUD operations with role-based access control
+### Details:
+1. Create campaign-management.controller.ts in the module directory
+2. Inject CampaignManagementService in the constructor
+3. Implement the following endpoints:
+   - @Get() getAllCampaigns(): List all campaigns with pagination
+   - @Post() createCampaign(): Create a new campaign
+   - @Get(':id') getCampaign(): Get campaign details
+   - @Patch(':id') updateCampaign(): Update a campaign
+   - @Delete(':id') deleteCampaign(): Delete a campaign
+4. Add @UseGuards(JwtAuthGuard, RolesGuard) to restrict access
+5. Add @Roles('superadmin') decorator to all endpoints
+6. Add proper request/response documentation using Swagger decorators
+7. Test each endpoint using integration tests
+
+## 5. Register Module and Configure Access Control [done]
+### Dependencies: 4.2, 4.3, 4.4
+### Description: Register the Campaign Management module in the application and ensure proper role-based access control
+### Details:
+1. Update the campaign-management.module.ts file:
+   - Import and configure necessary providers (CampaignManagementService)
+   - Import and configure controllers (CampaignManagementController)
+   - Import PrismaModule
+2. Register the CampaignManagementModule in the app.module.ts
+3. Ensure the RolesGuard is properly configured to check for 'superadmin' role
+4. Update any global role definitions if needed
+5. Test the complete implementation with end-to-end tests:
+   - Verify superadmin can access all endpoints
+   - Verify non-superadmin users cannot access the endpoints
+   - Test all CRUD operations through the API endpoints
+

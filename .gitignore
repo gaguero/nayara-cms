@@ -1,0 +1,46 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+**/logs # Backend logs folder
+
+# Dependency directories
+.cursor
+node_modules/
+**/node_modules # Ensure nested ones are ignored too
+
+# Environment variables
+.env
+.env*
+!.env.example # Important: Keep .env.example
+
+# Build output
+dist/
+**/dist # Backend/Frontend build output
+
+# Prisma
+# prisma/generated # Optional: uncomment if generated client isn't needed in repo
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+
+# Task files
+# tasks.json # Keep tasks.json in repo usually
+# tasks/ # Keep individual task files in repo usually
+scripts/task-complexity-report.json # Ignore generated report
+
+# Railway/Vercel specific (optional)
+.railway/
+.vercel/ 

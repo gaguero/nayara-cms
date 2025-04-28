@@ -1,0 +1,343 @@
+# Task ID: 5
+# Title: Create Dashboard Backend Endpoint
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Implement the dashboard summary endpoint that provides statistics for a specific campaign.
+# Details:
+1. Create DashboardModule in src/features/dashboard/
+2. Implement DashboardService with methods to retrieve campaign statistics
+3. Create DashboardController with endpoint:
+   - GET /api/v1/campaigns/:campaignId/dashboard-summary
+4. Implement logic to count relevant records (ContentItem, MediaRequirement) filtered by campaignId
+5. Return response in format: `{ "contentItemCount": number, "pendingMediaNeedsCount": number }`
+6. Apply JwtAuthGuard to protect the endpoint
+7. Add validation for the campaignId parameter
+
+# Test Strategy:
+Test the dashboard summary endpoint with valid and invalid campaign IDs. Verify that the endpoint returns the correct statistics format. Test authentication requirements and error handling for invalid requests.
+
+# Subtasks:
+## 1. Create DashboardModule and basic structure [done]
+### Dependencies: None
+### Description: Set up the module structure for the dashboard feature including the module file, service, and controller with basic scaffolding.
+### Details:
+1. Create directory structure in src/features/dashboard/
+2. Create dashboard.module.ts file with imports for necessary modules
+3. Create empty dashboard.service.ts file with @Injectable() decorator
+4. Create empty dashboard.controller.ts file with @Controller() decorator
+5. Register the service and controller in the module
+6. Import DashboardModule in the app.module.ts
+7. Test by ensuring the application compiles without errors
+
+## 2. Implement DashboardService with data retrieval methods [done]
+### Dependencies: 5.1
+### Description: Create the service methods to retrieve and calculate campaign statistics from the database.
+### Details:
+1. Inject necessary repositories (ContentItemRepository, MediaRequirementRepository) in the service constructor
+2. Implement getCampaignStatistics(campaignId: string) method that:
+   - Queries ContentItem count filtered by campaignId
+   - Queries MediaRequirement count with status 'pending' filtered by campaignId
+3. Return data in the format { contentItemCount: number, pendingMediaNeedsCount: number }
+4. Add error handling for database queries
+5. Test the service methods using unit tests with mock repositories
+
+<info added on 2025-04-28T01:44:01.223Z>
+Here's additional information to enhance the subtask:
+
+```typescript
+// Implementation approach for DashboardService
+@Injectable()
+export class DashboardService {
+  constructor(
+    private prisma: PrismaService,
+    // These will be available after Tasks 10 & 12
+    // private contentItemRepository: ContentItemRepository,
+    // private mediaRequirementRepository: MediaRequirementRepository
+  ) {}
+
+  // Temporary implementation with placeholder data
+  async getCampaignStatistics(campaignId: string): Promise<{ 
+    contentItemCount: number; 
+    pendingMediaNeedsCount: number;
+  }> {
+    try {
+      // TODO: Replace with actual implementation once dependencies are available
+      return { contentItemCount: 0, pendingMediaNeedsCount: 0 };
+    } catch (error) {
+      this.logger.error(`Failed to retrieve campaign statistics: ${error.message}`);
+      throw new InternalServerErrorException('Failed to retrieve campaign statistics');
+    }
+  }
+}
+```
+
+For testing:
+```typescript
+describe('DashboardService', () => {
+  let service: DashboardService;
+  let prismaService: MockType<PrismaService>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        DashboardService,
+        {
+          provide: PrismaService,
+          useFactory: () => ({
+            contentItem: { count: jest.fn() },
+            mediaRequirement: { count: jest.fn() },
+          }),
+        },
+      ],
+    }).compile();
+
+    service = module.get<DashboardService>(DashboardService);
+    prismaService = module.get(PrismaService);
+  });
+
+  // Test placeholder implementation for now
+  it('should return placeholder statistics', async () => {
+    const result = await service.getCampaignStatistics('campaign-id');
+    expect(result).toEqual({ contentItemCount: 0, pendingMediaNeedsCount: 0 });
+  });
+});
+```
+</info added on 2025-04-28T01:44:01.223Z>
+
+## 3. Create DashboardController with endpoint and validation [done]
+### Dependencies: 5.1, 5.2
+### Description: Implement the controller with the dashboard summary endpoint and parameter validation.
+### Details:
+1. Create the controller with @Controller('api/v1/campaigns') prefix
+2. Inject the DashboardService in the constructor
+3. Implement GET /:campaignId/dashboard-summary endpoint using @Get() decorator
+4. Add @Param() decorator with validation pipe for campaignId
+5. Create a DTO class for validating campaignId (using class-validator)
+6. Return the service response directly
+7. Test the controller using unit tests with mocked service
+
+<info added on 2025-04-28T01:44:53.466Z>
+Here's the additional implementation information:
+
+```typescript
+// Implementation example for DashboardController
+@Controller('api/v1/campaigns')
+export class DashboardController {
+  constructor(private readonly dashboardService: DashboardService) {}
+
+  @Get('/:campaignId/dashboard-summary')
+  async getDashboardSummary(
+    @Param('campaignId', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) 
+    campaignId: number
+  ) {
+    return this.dashboardService.getDashboardSummary(campaignId);
+  }
+}
+
+// DTO example for validation
+export class CampaignParamDto {
+  @IsInt()
+  @Min(1, { message: 'Campaign ID must be a positive integer' })
+  campaignId: number;
+}
+
+// Unit test example
+describe('DashboardController', () => {
+  let controller: DashboardController;
+  let dashboardService: DashboardService;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      controllers: [DashboardController],
+      providers: [{
+        provide: DashboardService,
+        useValue: {
+          getDashboardSummary: jest.fn()
+        }
+      }]
+    }).compile();
+
+    controller = module.get<DashboardController>(DashboardController);
+    dashboardService = module.get<DashboardService>(DashboardService);
+  });
+
+  it('should return dashboard summary for valid campaign ID', async () => {
+    const mockSummary = { impressions: 1000, clicks: 100 };
+    jest.spyOn(dashboardService, 'getDashboardSummary').mockResolvedValue(mockSummary);
+    
+    expect(await controller.getDashboardSummary(1)).toBe(mockSummary);
+    expect(dashboardService.getDashboardSummary).toHaveBeenCalledWith(1);
+  });
+});
+```
+
+Consider adding error handling with try/catch and appropriate HTTP exceptions for cases like campaign not found (HttpStatus.NOT_FOUND) or unauthorized access (HttpStatus.FORBIDDEN).
+</info added on 2025-04-28T01:44:53.466Z>
+
+## 4. Apply authentication and authorization [done]
+### Dependencies: 5.3
+### Description: Secure the dashboard endpoint with JWT authentication and proper authorization checks.
+### Details:
+1. Import and apply JwtAuthGuard to the controller using @UseGuards(JwtAuthGuard)
+2. Add campaign ownership verification logic in the service or create a separate guard
+3. Ensure proper error responses (401, 403) for unauthorized access
+4. Update error handling to include authentication/authorization errors
+5. Test authentication flow with valid and invalid JWT tokens
+6. Test authorization with users who own and don't own the campaign
+
+<info added on 2025-04-28T01:45:42.584Z>
+Here's the implementation plan with additional technical details:
+
+```typescript
+// In dashboard.controller.ts
+import { Controller, Get, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+
+@Controller('dashboard')
+@UseGuards(JwtAuthGuard) // Apply guard to all routes in controller
+export class DashboardController {
+  // Extract user from JWT payload
+  @Get('campaign/:id')
+  async getCampaignSummary(@Param('id') campaignId: string, @Req() request: Request) {
+    const userId = request.user.id; // JWT payload contains user info
+    return this.dashboardService.getCampaignSummary(campaignId, userId);
+  }
+}
+
+// In dashboard.service.ts
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+
+@Injectable()
+export class DashboardService {
+  async getCampaignSummary(campaignId: string, userId: string) {
+    // Check campaign ownership
+    const campaign = await this.campaignRepository.findOne({
+      where: { id: campaignId }
+    });
+    
+    if (!campaign) {
+      throw new NotFoundException('Campaign not found');
+    }
+    
+    if (campaign.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this campaign');
+    }
+    
+    // Continue with existing logic to fetch campaign data
+  }
+}
+
+// Optional: Create a custom CampaignOwnerGuard for reusability
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+
+@Injectable()
+export class CampaignOwnerGuard implements CanActivate {
+  constructor(private campaignRepository: CampaignRepository) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user.id;
+    const campaignId = request.params.id;
+    
+    const campaign = await this.campaignRepository.findOne({
+      where: { id: campaignId }
+    });
+    
+    if (!campaign || campaign.userId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+    
+    return true;
+  }
+}
+```
+</info added on 2025-04-28T01:45:42.584Z>
+
+## 5. Integration testing and documentation [done]
+### Dependencies: 5.2, 5.3, 5.4
+### Description: Create integration tests for the dashboard endpoint and add API documentation.
+### Details:
+1. Create e2e tests for the dashboard endpoint that:
+   - Tests with valid campaignId and authentication
+   - Tests with invalid campaignId
+   - Tests with missing authentication
+   - Verifies correct response format and data
+2. Add Swagger documentation using @ApiTags and @ApiOperation decorators
+3. Document response schema using @ApiResponse
+4. Document required authentication using @ApiBearerAuth
+5. Verify the endpoint works in the Swagger UI
+6. Update any relevant documentation files
+
+<info added on 2025-04-28T01:46:45.483Z>
+For the implementation plan:
+
+1. Create a `DashboardSummaryDto` class:
+```typescript
+export class DashboardSummaryDto {
+  @ApiProperty({ description: 'Total number of emails sent' })
+  totalEmailsSent: number;
+
+  @ApiProperty({ description: 'Open rate percentage' })
+  openRate: number;
+
+  @ApiProperty({ description: 'Click-through rate percentage' })
+  clickRate: number;
+
+  @ApiProperty({ description: 'Conversion rate percentage' })
+  conversionRate: number;
+
+  @ApiProperty({ description: 'Daily statistics breakdown' })
+  dailyStats: DailyStatDto[];
+}
+
+export class DailyStatDto {
+  @ApiProperty({ description: 'Date of statistics', example: '2023-06-15' })
+  date: string;
+  
+  @ApiProperty({ description: 'Number of emails sent on this date' })
+  sent: number;
+  
+  @ApiProperty({ description: 'Number of emails opened on this date' })
+  opened: number;
+  
+  @ApiProperty({ description: 'Number of links clicked on this date' })
+  clicked: number;
+}
+```
+
+2. For Swagger documentation in controller:
+```typescript
+@ApiTags('Dashboard')
+@Controller('dashboard')
+@ApiBearerAuth()
+export class DashboardController {
+  @Get(':campaignId')
+  @ApiOperation({ 
+    summary: 'Get campaign dashboard summary', 
+    description: 'Retrieves performance metrics and statistics for a specific campaign' 
+  })
+  @ApiParam({ name: 'campaignId', description: 'ID of the campaign to retrieve dashboard for' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Campaign dashboard data retrieved successfully',
+    type: DashboardSummaryDto
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Missing or invalid authentication' })
+  @ApiResponse({ status: 404, description: 'Campaign not found' })
+  getCampaignSummary() {
+    // TODO: Implement E2E tests for this endpoint after MVP release
+    // Implementation here
+  }
+}
+```
+
+3. For integration testing, create a file structure like:
+```
+test/
+  integration/
+    dashboard.e2e-spec.ts
+```
+</info added on 2025-04-28T01:46:45.483Z>
+

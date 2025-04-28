@@ -1,0 +1,215 @@
+# Product Requirements Document (PRD): Nayara CMS
+
+## 1. Project Goal
+
+To build a Content Management System (CMS) named "Nayara CMS" enabling users to manage content across multiple campaigns. The system will feature distinct frontend (React) and backend (NestJS) applications, utilizing Prisma for ORM and Shadcn/UI with Tailwind CSS for the user interface.
+
+## 2. Technology Stack
+
+*   **Frontend:** React (Vite), TypeScript, React Router DOM, Zustand/Context API, TanStack React Query (react-query), Axios, Shadcn/UI, Tailwind CSS
+*   **Backend:** NestJS, TypeScript, Prisma, PostgreSQL (assumed)
+*   **Authentication:** JWT
+*   **Deployment:** Railway (implied volume usage)
+
+## 3. High-Level Features
+
+*(Note: Features marked MVP are the initial focus. Global features apply system-wide, Campaign-Specific features operate within the context of a selected campaign.)*
+
+1.  **Backend Foundations & Authentication (Global) MVP:** (Core NestJS setup, Prisma integration, JWT auth module, basic user handling - *Details previously defined*)
+2.  **Campaign Management (Global) MVP:** (CRUD operations for Campaigns, Superadmin restricted - *Details previously defined*)
+3.  **Content Strategy & Planning Library MVP (Campaign-Specific):** (Upload/manage planning documents per campaign - *Details previously defined*)
+4.  **Core Content Management (Campaign-Specific) MVP:** (CRUD for content items, platform association, status tracking per campaign - *Details previously defined*)
+5.  **Media Asset Management MVP (Campaign-Specific):** (Upload/manage media assets per campaign - *Details previously defined*)
+6.  **Image Placeholder System MVP (Campaign-Specific):** (Define media requirements/placeholders for content per campaign - *Details previously defined*)
+7.  **User Interface Foundations MVP:** (Establish core app layout, navigation, campaign selection, global state, routing, and dashboard - *Detailed below*)
+
+## 4. Feature Specifications
+
+### 4.1. User Interface Foundations MVP
+
+*   **Goal:** Establish the main application layout (shell) using React and Shadcn/UI components, including a persistent sidebar for navigation and a header. Implement campaign selection and global state management for authentication and active campaign context. Set up routing and a basic dashboard view.
+*   **Key UI Information:** Utilize standard Shadcn/UI components and Tailwind CSS for styling, prioritizing functionality and usability.
+
+*   **Requirements:**
+    *   **Project Setup:**
+        *   Initialize React project using Vite.
+        *   Install necessary dependencies: `react-router-dom`, `axios`, `@tanstack/react-query`, `tailwindcss`, `zustand` (or use Context API), Shadcn/UI CLI.
+        *   Configure Tailwind CSS (`tailwind.config.js`, `postcss.config.js`, `globals.css`).
+        *   Initialize Shadcn/UI (`npx shadcn-ui@latest init`) and add core components (button, dropdown-menu, select, card, separator, input, label, textarea, table, dialog, alert-dialog, toast, skeleton, etc.).
+        *   Define basic theme (colors, fonts).
+    *   **Global State Management (`src/providers/`):**
+        *   `AuthProvider`:
+            *   Manages `user` object, `token`, `isLoading`, `isAuthenticated`.
+            *   Provides `login`, `logout`, `checkAuthStatus` functions.
+            *   Handles token storage/retrieval (e.g., `localStorage`).
+            *   Provides `useAuth` hook.
+        *   `CampaignProvider`:
+            *   Manages `availableCampaigns` (array of `{id, name}`), `activeCampaignId` (string | null), `isLoadingCampaigns`.
+            *   Fetches campaigns (`GET /api/v1/campaigns`) using `react-query` upon successful authentication.
+            *   Persists `activeCampaignId` to `localStorage`.
+            *   Sets a default active campaign if none selected (e.g., first fetched).
+            *   Provides `useCampaign` hook (returns `availableCampaigns`, `activeCampaignId`, `setActiveCampaignId`).
+        *   `QueryClientProvider`: Wraps the application for `react-query`.
+        *   `ThemeProvider` (Optional): For light/dark mode toggling.
+    *   **Routing (`src/routes/`, `src/app/`):**
+        *   Implement routing using `react-router-dom` (`createBrowserRouter`).
+        *   `RootLayout.tsx`: Contains all global providers.
+        *   `ProtectedRoute.tsx`: Wrapper component checking authentication via `useAuth`. Shows loading state or redirects to `/login` if not authenticated. Renders child routes (`<Outlet />`) if authenticated.
+        *   `AppLayout.tsx`: Defines the main application shell (Header, Sidebar, content area) for authenticated users. Used within `ProtectedRoute`.
+        *   Define routes:
+            *   Public: `/login`, `/auth/callback`
+            *   Protected (under `AppLayout`): `/dashboard`, `/content`, `/content/new`, `/content/:id/edit`, `/planning-library`, `/planning-library/upload`, `/media-library`, `/media-library/upload`, `/media-needs`, `/admin/campaigns` (conditional based on role), `/settings` (conditional based on role).
+    *   **Layout Components (`src/components/layout/`):**
+        *   `Header.tsx`: Displays app title/logo, includes `CampaignSelector` and `UserNav`.
+        *   `Sidebar.tsx`: Provides navigation links (using Shadcn Button/Link) to feature sections (Dashboard, Content, Planning Library, Media Library, Media Needs). Highlights the active route. Conditionally displays Admin links (Campaign Mgt, Settings) based on user role from `useAuth`.
+        *   `CampaignSelector.tsx`:
+            *   Uses `useCampaign` hook.
+            *   Displays loading state (skeleton/disabled) while fetching campaigns.
+            *   Renders a Shadcn `<Select>` or `<DropdownMenu>` populated with `availableCampaigns`.
+            *   Value is bound to `activeCampaignId` from context.
+            *   `onValueChange` triggers `setActiveCampaignId`.
+            *   Reads initial value from context/`localStorage`.
+        *   `UserNav.tsx`:
+            *   Uses `useAuth` hook.
+            *   Displays user's name.
+            *   Includes a dropdown menu with a "Logout" option that calls the `logout` function from `AuthProvider`.
+    *   **Dashboard Page (`src/features/dashboard/`):**
+        *   Route: `/dashboard` (default page after login).
+        *   Uses `useAuth` and `useCampaign` hooks.
+        *   Displays a welcome message.
+        *   Uses `react-query` (`useQuery`) to fetch dashboard summary data (`GET /api/v1/campaigns/{campaignId}/dashboard-summary`) for the `activeCampaignId`. Query should be enabled only when `activeCampaignId` is available.
+        *   Displays loading states (e.g., Shadcn `<Skeleton>`).
+        *   Displays fetched statistics (e.g., Content Item Count, Pending Media Needs) using Shadcn `<Card>` components.
+        *   Handles the case where `activeCampaignId` is initially null or no campaigns are available.
+    *   **API Requirements:**
+        *   Relies on existing `GET /api/v1/campaigns`.
+        *   Relies on existing auth endpoints (`/login`, `/auth/status`, etc.).
+        *   **Requires NEW Backend Endpoint:** `GET /api/v1/campaigns/{campaignId}/dashboard-summary`
+            *   Backend: Create `DashboardModule`, `DashboardController`, `DashboardService`.
+            *   Service logic: Use `PrismaService` to count relevant records (e.g., `ContentItem`, `MediaRequirement`) filtered by the provided `campaignId`.
+            *   Response format: `{ "contentItemCount": number, "pendingMediaNeedsCount": number }`
+            *   Protection: Apply `JwtAuthGuard`. Validate `campaignId` parameter.
+    *   **Loading & Error Handling:**
+        *   Implement a global loading indicator (e.g., top progress bar).
+        *   Display global error messages (e.g., API connection failures) using Shadcn `<Toast>` or `<Alert>`.
+        *   Utilize `react-query`'s built-in loading and error states for data fetching within components.
+        *   Handle UI states gracefully if `activeCampaignId` is null or fetching fails.
+    *   **User Experience Flow:**
+        *   User navigates to the app, redirected to `/login`.
+        *   User logs in successfully, redirected to `/dashboard`.
+        *   `AuthProvider` confirms authentication, fetches user data.
+        *   `CampaignProvider` fetches the list of available campaigns.
+        *   `CampaignSelector` is populated; an initial `activeCampaignId` is set (from `localStorage` or default).
+        *   `DashboardPage` fetches and displays summary data for the `activeCampaignId`.
+        *   User navigates using the `Sidebar`. Views fetch data relevant to the `activeCampaignId`.
+        *   User selects a different campaign via `CampaignSelector`. `activeCampaignId` updates in context and `localStorage`.
+        *   Views dependent on `activeCampaignId` (like Dashboard) automatically refetch data via `react-query`.
+        *   User logs out via `UserNav`, token is cleared, user redirected to `/login`.
+
+*   **(Include previously defined specifications for other features here if desired for completeness)**
+
+## 5. File System Structure (Reference)
+
+*(Include the file system structure provided by the user here as a reference for developers)*
+
+**Frontend (React)**
+```
+/nayara-cms-frontend
+|-- public/
+|-- src/
+|   |-- app/              # Main layout, routing setup (RootLayout, protected routes)
+|   |-- assets/           # Static assets
+|   |-- components/       # UI components from Shadcn/UI + custom shared
+|   |   |-- auth/         # LoginButton
+|   |   |-- campaign/     # CampaignSelector
+|   |   |-- layout/       # Shell (AppLayout), Header, Sidebar, UserNav
+|   |   |-- ui/           # Shadcn/UI components
+|   |   |-- common/       # StatusBadge, FileUploadDropzone, ImagePlaceholder, LoadingSpinner
+|   |-- features/         # Feature-specific components, hooks, pages
+|   |   |-- auth/         # LoginPage, AuthCallbackPage
+|   |   |-- campaign-management/ # (Superadmin only)
+|   |   |   |-- components/
+|   |   |   |-- hooks/
+|   |   |   |-- pages/        # CampaignManagementPage
+|   |   |-- content-management/ # (Campaign-Specific)
+|   |   |   |-- components/   # e.g., ContentList, ContentForm, PlatformSelect, StatusSelect
+|   |   |   |-- hooks/        # e.g., useContentItems(campaignId)
+|   |   |   |-- pages/        # e.g., ContentListPage, EditContentPage, NewContentPage
+|   |   |-- dashboard/      # DashboardPage, DashboardWidgets
+|   |   |-- media-library/  # (Campaign-Specific) - Handles Assets & Requirements
+|   |   |   |-- components/   # e.g., MediaAssetList, MediaUploadForm, MediaAssetCard, MediaRequirementPlaceholder, MediaNeedsList, AddMediaRequirementDialog
+|   |   |   |-- hooks/        # e.g., useMediaAssets(campaignId), useMediaNeeds(campaignId)
+|   |   |   |-- pages/        # e.g., MediaLibraryPage, UploadMediaPage, MediaNeedsPage
+|   |   |-- planning-library/ # (Campaign-Specific)
+|   |   |   |-- components/   # e.g., PlanningDocumentList, UploadForm
+|   |   |   |-- hooks/        # e.g., usePlanningDocuments(campaignId)
+|   |   |   |-- pages/        # e.g., PlanningLibraryPage, UploadDocumentPage
+|   |   |-- settings/       # (Superadmin only) SettingsPage
+|   |-- hooks/            # Global custom React hooks (e.g., useActiveCampaign, useAuth)
+|   |-- lib/              # Utilities, API client, constants
+|   |-- providers/        # Context providers (AuthProvider, ThemeProvider, QueryClientProvider, CampaignProvider)
+|   |-- routes/           # Route definitions, protected route logic
+|   |-- styles/           # Global styles, tailwind output
+|   |-- types/            # Global TypeScript types
+|-- .env
+|-- components.json
+|-- postcss.config.js
+|-- tailwind.config.js
+|-- package.json
+|-- tsconfig.json
+```
+
+**Backend (NestJS)**
+```
+/nayara-cms-backend
+|-- prisma/               # Prisma schema and migrations
+|   |-- schema.prisma
+|   |-- migrations/
+|   |-- seed.ts           # Optional: DB seeding script
+|-- src/
+|   |-- auth/             # Authentication module
+|   |-- common/           # Shared utilities, decorators, pipes, filters, constants
+|   |-- config/           # Configuration module
+|   |-- core/             # Core modules (PrismaService, Queue)
+|   |-- features/         # Feature-specific modules
+|   |   |-- campaign-management/ # (Global, Superadmin only)
+|   |   |   |-- dto/
+|   |   |   |-- campaign-management.controller.ts
+|   |   |   |-- campaign-management.module.ts
+|   |   |   |-- campaign-management.service.ts
+|   |   |-- content-management/ # (Campaign-Specific)
+|   |   |   |-- dto/
+|   |   |   |-- enums/
+|   |   |   |-- content-management.controller.ts # Needs campaign context
+|   |   |   |-- content-management.module.ts
+|   |   |   |-- content-management.service.ts  # Needs campaign context
+|   |   |-- dashboard/      # Module for dashboard specific endpoints
+|   |   |   |-- dashboard.controller.ts
+|   |   |   |-- dashboard.module.ts
+|   |   |   |-- dashboard.service.ts
+|   |   |-- media-library/  # (Campaign-Specific) - Handles MediaAssets AND MediaRequirements
+|   |   |   |-- dto/
+|   |   |   |-- enums/
+|   |   |   |-- media-library.controller.ts    # Needs campaign context
+|   |   |   |-- media-library.module.ts
+|   |   |   |-- media-library.service.ts     # Needs campaign context
+|   |   |-- planning-library/ # (Campaign-Specific)
+|   |   |   |-- dto/
+|   |   |   |-- enums/
+|   |   |   |-- planning-library.controller.ts # Needs campaign context
+|   |   |   |-- planning-library.module.ts
+|   |   |   |-- planning-library.service.ts  # Needs campaign context
+|   |   |-- users/          # User management module (Global)
+|   |   |-- settings/       # System settings module (Global, Superadmin only)
+|   |-- storage/          # Module abstracting file storage (Railway Volume)
+|   |   |-- storage.module.ts
+|   |   |-- storage.service.ts # Needs campaign context for paths
+|   |-- app.module.ts     # Root application module
+|   |-- main.ts           # Application entry point
+|-- test/                 # E2E tests
+|-- .env                  # Environment variables
+|-- nest-cli.json
+|-- package.json
+|-- tsconfig.build.json
+|-- tsconfig.json
+``` 

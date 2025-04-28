@@ -1,0 +1,1021 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Initialize Frontend Project with Vite and Configure Dependencies",
+      "description": "Set up the React frontend project using Vite, install all required dependencies, and configure Tailwind CSS and Shadcn/UI.",
+      "status": "done",
+      "dependencies": [],
+      "priority": "high",
+      "details": "1. Create a new Vite project: `npm create vite@latest nayara-cms-frontend -- --template react-ts`\n2. Install core dependencies: `npm install react-router-dom axios @tanstack/react-query zustand tailwindcss postcss autoprefixer`\n3. Set up Tailwind CSS: `npx tailwindcss init -p`\n4. Configure tailwind.config.js to include content paths\n5. Create src/styles/globals.css with Tailwind directives\n6. Initialize Shadcn/UI: `npx shadcn-ui@latest init`\n7. Install core Shadcn components: button, dropdown-menu, select, card, separator, input, label, textarea, table, dialog, alert-dialog, toast, skeleton\n8. Set up the basic file structure according to the reference in the PRD",
+      "testStrategy": "Verify that the project builds without errors using `npm run dev`. Confirm that Tailwind CSS is working by testing a simple component with Tailwind classes. Verify that Shadcn/UI components can be imported and rendered correctly."
+    },
+    {
+      "id": 2,
+      "title": "Initialize Backend Project with NestJS and Prisma",
+      "description": "Set up the NestJS backend project, configure TypeScript, and integrate Prisma ORM with PostgreSQL.",
+      "status": "done",
+      "dependencies": [],
+      "priority": "high",
+      "details": "1. Create a new NestJS project: `nest new nayara-cms-backend`\n2. Install Prisma: `npm install prisma @prisma/client`\n3. Initialize Prisma: `npx prisma init`\n4. Configure the database connection in .env (PostgreSQL)\n5. Create a PrismaService in src/core/prisma.service.ts that extends PrismaClient and implements OnModuleInit and OnModuleDestroy\n6. Create the initial Prisma schema in prisma/schema.prisma with User and Campaign models\n7. Set up the basic file structure according to the reference in the PRD\n8. Create a basic AppModule that imports the PrismaService",
+      "testStrategy": "Verify that the NestJS application starts without errors. Test the database connection by running a simple Prisma query. Ensure that the PrismaService can be injected into other services."
+    },
+    {
+      "id": 3,
+      "title": "Implement JWT Authentication in Backend",
+      "description": "Create the authentication module in the NestJS backend with JWT support, including user registration, login, and authentication guards.",
+      "status": "done",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "1. Install JWT packages: `npm install @nestjs/jwt passport passport-jwt @nestjs/passport bcrypt`\n2. Create an AuthModule in src/auth/\n3. Implement UserService and UserController for basic user management\n4. Create DTOs for login and registration\n5. Implement JWT strategy in src/auth/strategies/jwt.strategy.ts\n6. Create JwtAuthGuard for protecting routes\n7. Implement login endpoint that returns JWT token\n8. Implement /auth/status endpoint to check authentication status\n9. Add User model to Prisma schema with password hashing\n10. Run `npx prisma migrate dev` to create the database tables",
+      "testStrategy": "Test user registration and login endpoints using Postman or curl. Verify that JWT tokens are generated correctly and can be used to access protected routes. Test the auth status endpoint to ensure it correctly identifies authenticated users.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up User model and database migration",
+          "description": "Create the User model in Prisma schema with necessary fields for authentication and run migration to set up the database tables.",
+          "dependencies": [],
+          "details": "1. Add User model to Prisma schema in `prisma/schema.prisma` with fields: id, email, password, name, createdAt, updatedAt\n2. Ensure email is unique and properly indexed\n3. Run `npx prisma migrate dev --name add-user-model` to create the database tables\n4. Generate Prisma client with `npx prisma generate`\n5. Test by checking the database structure to confirm tables were created correctly",
+          "status": "done",
+          "parentTaskId": 3
+        },
+        {
+          "id": 2,
+          "title": "Create Auth module with User service",
+          "description": "Set up the authentication module structure and implement the UserService for managing user data.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Install required packages: `npm install @nestjs/jwt passport passport-jwt @nestjs/passport bcrypt`\n2. Create `src/auth/auth.module.ts` with imports for JwtModule and PassportModule\n3. Create `src/auth/user.service.ts` with methods for:\n   - findUserByEmail\n   - createUser (with password hashing using bcrypt)\n   - validateUser (for login)\n4. Create DTOs in `src/auth/dto/` folder:\n   - create-user.dto.ts\n   - login.dto.ts\n5. Test UserService with unit tests to verify user creation and password hashing works",
+          "status": "done",
+          "parentTaskId": 3
+        },
+        {
+          "id": 3,
+          "title": "Implement JWT strategy and Auth service",
+          "description": "Create the JWT strategy for Passport and implement the AuthService for handling authentication logic.",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Create `src/auth/strategies/jwt.strategy.ts` implementing PassportStrategy\n2. Configure JWT strategy with secret key and token extraction\n3. Implement validate method to extract user from token payload\n4. Create `src/auth/auth.service.ts` with methods for:\n   - validateUserCredentials (using UserService)\n   - login (generating JWT token)\n   - register (creating new user)\n5. Configure JwtModule in AuthModule with appropriate token expiration and secret\n6. Test JWT token generation and validation with unit tests",
+          "status": "done",
+          "parentTaskId": 3
+        },
+        {
+          "id": 4,
+          "title": "Create Auth guards and decorators",
+          "description": "Implement authentication guards to protect routes and create custom decorators for user access.",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Create `src/auth/guards/jwt-auth.guard.ts` extending AuthGuard from @nestjs/passport\n2. Create `src/auth/decorators/current-user.decorator.ts` to extract the current user from request\n3. Create `src/auth/guards/optional-jwt-auth.guard.ts` for routes where authentication is optional\n4. Update AuthModule to provide the guards\n5. Test guards by creating a simple protected route and verifying access control works",
+          "status": "done",
+          "parentTaskId": 3
+        },
+        {
+          "id": 5,
+          "title": "Implement Auth controller with endpoints",
+          "description": "Create the AuthController with registration, login, and status check endpoints.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "1. Create `src/auth/auth.controller.ts` with endpoints:\n   - POST /auth/register - for user registration\n   - POST /auth/login - for user login (returns JWT token)\n   - GET /auth/status - to check authentication status (protected with JwtAuthGuard)\n2. Implement proper request validation using the DTOs\n3. Add appropriate error handling for duplicate emails, invalid credentials, etc.\n4. Update AuthModule to include the controller\n5. Test all endpoints using Postman or similar tool to verify:\n   - User registration works and passwords are hashed\n   - Login returns valid JWT token\n   - Status endpoint returns user info when authenticated\n   - Protected routes reject unauthenticated requests",
+          "status": "done",
+          "parentTaskId": 3
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Implement Campaign Management Backend",
+      "description": "Create the campaign management module in the backend with CRUD operations for campaigns, restricted to superadmin users.",
+      "status": "done",
+      "dependencies": [
+        3
+      ],
+      "priority": "high",
+      "details": "1. Create CampaignManagementModule in src/features/campaign-management/\n2. Define Campaign model in Prisma schema with relations to User\n3. Create DTOs for campaign creation, update, and response\n4. Implement CampaignManagementService with CRUD operations\n5. Implement CampaignManagementController with endpoints for:\n   - GET /api/v1/campaigns (list all campaigns)\n   - POST /api/v1/campaigns (create campaign)\n   - GET /api/v1/campaigns/:id (get campaign details)\n   - PATCH /api/v1/campaigns/:id (update campaign)\n   - DELETE /api/v1/campaigns/:id (delete campaign)\n6. Add role-based access control to restrict campaign management to superadmins\n7. Run `npx prisma migrate dev` to update the database schema",
+      "testStrategy": "Test all CRUD endpoints using Postman or curl. Verify that only superadmin users can access these endpoints. Test validation of input data and proper error handling.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define Campaign Model in Prisma Schema",
+          "description": "Create the Campaign model in the Prisma schema with appropriate fields and relations to the User model",
+          "dependencies": [],
+          "details": "1. Open the Prisma schema file (schema.prisma)\n2. Define a new Campaign model with fields:\n   - id (UUID, primary key)\n   - name (String, required)\n   - description (String, optional)\n   - startDate (DateTime, required)\n   - endDate (DateTime, optional)\n   - isActive (Boolean, default true)\n   - createdAt (DateTime, default now)\n   - updatedAt (DateTime, updated automatically)\n3. Add relation to User model:\n   - createdBy (relation to User model)\n   - createdById (UUID, foreign key)\n4. Run `npx prisma migrate dev --name add-campaign-model` to create the migration\n5. Test by verifying the migration was created correctly and the database schema was updated",
+          "status": "done",
+          "parentTaskId": 4
+        },
+        {
+          "id": 2,
+          "title": "Create Campaign DTOs and Module Structure",
+          "description": "Set up the campaign management module structure and define the Data Transfer Objects for campaign operations",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create the module directory structure:\n   - src/features/campaign-management/\n   - src/features/campaign-management/dto/\n   - src/features/campaign-management/entities/\n2. Create the following DTOs in the dto directory:\n   - create-campaign.dto.ts (with validation decorators)\n   - update-campaign.dto.ts (extends partial of create DTO)\n   - campaign-response.dto.ts (for API responses)\n3. Create campaign.entity.ts in the entities directory\n4. Create campaign-management.module.ts file\n5. Test by validating the structure and ensuring all files compile without errors",
+          "status": "done",
+          "parentTaskId": 4
+        },
+        {
+          "id": 3,
+          "title": "Implement Campaign Management Service",
+          "description": "Create the service layer with CRUD operations for campaign management",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create campaign-management.service.ts in the module directory\n2. Inject PrismaService in the constructor\n3. Implement the following methods:\n   - findAll(): Retrieve all campaigns with pagination\n   - findOne(id: string): Get a single campaign by ID\n   - create(createCampaignDto, userId): Create a new campaign\n   - update(id: string, updateCampaignDto): Update an existing campaign\n   - remove(id: string): Delete a campaign\n4. Add error handling for not found cases and validation errors\n5. Test each method using unit tests with Jest, mocking the PrismaService",
+          "status": "done",
+          "parentTaskId": 4
+        },
+        {
+          "id": 4,
+          "title": "Implement Campaign Management Controller",
+          "description": "Create the controller with REST endpoints for campaign CRUD operations with role-based access control",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Create campaign-management.controller.ts in the module directory\n2. Inject CampaignManagementService in the constructor\n3. Implement the following endpoints:\n   - @Get() getAllCampaigns(): List all campaigns with pagination\n   - @Post() createCampaign(): Create a new campaign\n   - @Get(':id') getCampaign(): Get campaign details\n   - @Patch(':id') updateCampaign(): Update a campaign\n   - @Delete(':id') deleteCampaign(): Delete a campaign\n4. Add @UseGuards(JwtAuthGuard, RolesGuard) to restrict access\n5. Add @Roles('superadmin') decorator to all endpoints\n6. Add proper request/response documentation using Swagger decorators\n7. Test each endpoint using integration tests",
+          "status": "done",
+          "parentTaskId": 4
+        },
+        {
+          "id": 5,
+          "title": "Register Module and Configure Access Control",
+          "description": "Register the Campaign Management module in the application and ensure proper role-based access control",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "1. Update the campaign-management.module.ts file:\n   - Import and configure necessary providers (CampaignManagementService)\n   - Import and configure controllers (CampaignManagementController)\n   - Import PrismaModule\n2. Register the CampaignManagementModule in the app.module.ts\n3. Ensure the RolesGuard is properly configured to check for 'superadmin' role\n4. Update any global role definitions if needed\n5. Test the complete implementation with end-to-end tests:\n   - Verify superadmin can access all endpoints\n   - Verify non-superadmin users cannot access the endpoints\n   - Test all CRUD operations through the API endpoints",
+          "status": "done",
+          "parentTaskId": 4
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Create Dashboard Backend Endpoint",
+      "description": "Implement the dashboard summary endpoint that provides statistics for a specific campaign.",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "1. Create DashboardModule in src/features/dashboard/\n2. Implement DashboardService with methods to retrieve campaign statistics\n3. Create DashboardController with endpoint:\n   - GET /api/v1/campaigns/:campaignId/dashboard-summary\n4. Implement logic to count relevant records (ContentItem, MediaRequirement) filtered by campaignId\n5. Return response in format: `{ \"contentItemCount\": number, \"pendingMediaNeedsCount\": number }`\n6. Apply JwtAuthGuard to protect the endpoint\n7. Add validation for the campaignId parameter",
+      "testStrategy": "Test the dashboard summary endpoint with valid and invalid campaign IDs. Verify that the endpoint returns the correct statistics format. Test authentication requirements and error handling for invalid requests.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create DashboardModule and basic structure",
+          "description": "Set up the module structure for the dashboard feature including the module file, service, and controller with basic scaffolding.",
+          "dependencies": [],
+          "details": "1. Create directory structure in src/features/dashboard/\n2. Create dashboard.module.ts file with imports for necessary modules\n3. Create empty dashboard.service.ts file with @Injectable() decorator\n4. Create empty dashboard.controller.ts file with @Controller() decorator\n5. Register the service and controller in the module\n6. Import DashboardModule in the app.module.ts\n7. Test by ensuring the application compiles without errors",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 2,
+          "title": "Implement DashboardService with data retrieval methods",
+          "description": "Create the service methods to retrieve and calculate campaign statistics from the database.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Inject necessary repositories (ContentItemRepository, MediaRequirementRepository) in the service constructor\n2. Implement getCampaignStatistics(campaignId: string) method that:\n   - Queries ContentItem count filtered by campaignId\n   - Queries MediaRequirement count with status 'pending' filtered by campaignId\n3. Return data in the format { contentItemCount: number, pendingMediaNeedsCount: number }\n4. Add error handling for database queries\n5. Test the service methods using unit tests with mock repositories\n\n<info added on 2025-04-28T01:44:01.223Z>\nHere's additional information to enhance the subtask:\n\n```typescript\n// Implementation approach for DashboardService\n@Injectable()\nexport class DashboardService {\n  constructor(\n    private prisma: PrismaService,\n    // These will be available after Tasks 10 & 12\n    // private contentItemRepository: ContentItemRepository,\n    // private mediaRequirementRepository: MediaRequirementRepository\n  ) {}\n\n  // Temporary implementation with placeholder data\n  async getCampaignStatistics(campaignId: string): Promise<{ \n    contentItemCount: number; \n    pendingMediaNeedsCount: number;\n  }> {\n    try {\n      // TODO: Replace with actual implementation once dependencies are available\n      return { contentItemCount: 0, pendingMediaNeedsCount: 0 };\n    } catch (error) {\n      this.logger.error(`Failed to retrieve campaign statistics: ${error.message}`);\n      throw new InternalServerErrorException('Failed to retrieve campaign statistics');\n    }\n  }\n}\n```\n\nFor testing:\n```typescript\ndescribe('DashboardService', () => {\n  let service: DashboardService;\n  let prismaService: MockType<PrismaService>;\n\n  beforeEach(async () => {\n    const module: TestingModule = await Test.createTestingModule({\n      providers: [\n        DashboardService,\n        {\n          provide: PrismaService,\n          useFactory: () => ({\n            contentItem: { count: jest.fn() },\n            mediaRequirement: { count: jest.fn() },\n          }),\n        },\n      ],\n    }).compile();\n\n    service = module.get<DashboardService>(DashboardService);\n    prismaService = module.get(PrismaService);\n  });\n\n  // Test placeholder implementation for now\n  it('should return placeholder statistics', async () => {\n    const result = await service.getCampaignStatistics('campaign-id');\n    expect(result).toEqual({ contentItemCount: 0, pendingMediaNeedsCount: 0 });\n  });\n});\n```\n</info added on 2025-04-28T01:44:01.223Z>",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 3,
+          "title": "Create DashboardController with endpoint and validation",
+          "description": "Implement the controller with the dashboard summary endpoint and parameter validation.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create the controller with @Controller('api/v1/campaigns') prefix\n2. Inject the DashboardService in the constructor\n3. Implement GET /:campaignId/dashboard-summary endpoint using @Get() decorator\n4. Add @Param() decorator with validation pipe for campaignId\n5. Create a DTO class for validating campaignId (using class-validator)\n6. Return the service response directly\n7. Test the controller using unit tests with mocked service\n\n<info added on 2025-04-28T01:44:53.466Z>\nHere's the additional implementation information:\n\n```typescript\n// Implementation example for DashboardController\n@Controller('api/v1/campaigns')\nexport class DashboardController {\n  constructor(private readonly dashboardService: DashboardService) {}\n\n  @Get('/:campaignId/dashboard-summary')\n  async getDashboardSummary(\n    @Param('campaignId', new ParseIntPipe({ errorHttpStatusCode: HttpStatus.BAD_REQUEST })) \n    campaignId: number\n  ) {\n    return this.dashboardService.getDashboardSummary(campaignId);\n  }\n}\n\n// DTO example for validation\nexport class CampaignParamDto {\n  @IsInt()\n  @Min(1, { message: 'Campaign ID must be a positive integer' })\n  campaignId: number;\n}\n\n// Unit test example\ndescribe('DashboardController', () => {\n  let controller: DashboardController;\n  let dashboardService: DashboardService;\n\n  beforeEach(async () => {\n    const module = await Test.createTestingModule({\n      controllers: [DashboardController],\n      providers: [{\n        provide: DashboardService,\n        useValue: {\n          getDashboardSummary: jest.fn()\n        }\n      }]\n    }).compile();\n\n    controller = module.get<DashboardController>(DashboardController);\n    dashboardService = module.get<DashboardService>(DashboardService);\n  });\n\n  it('should return dashboard summary for valid campaign ID', async () => {\n    const mockSummary = { impressions: 1000, clicks: 100 };\n    jest.spyOn(dashboardService, 'getDashboardSummary').mockResolvedValue(mockSummary);\n    \n    expect(await controller.getDashboardSummary(1)).toBe(mockSummary);\n    expect(dashboardService.getDashboardSummary).toHaveBeenCalledWith(1);\n  });\n});\n```\n\nConsider adding error handling with try/catch and appropriate HTTP exceptions for cases like campaign not found (HttpStatus.NOT_FOUND) or unauthorized access (HttpStatus.FORBIDDEN).\n</info added on 2025-04-28T01:44:53.466Z>",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 4,
+          "title": "Apply authentication and authorization",
+          "description": "Secure the dashboard endpoint with JWT authentication and proper authorization checks.",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Import and apply JwtAuthGuard to the controller using @UseGuards(JwtAuthGuard)\n2. Add campaign ownership verification logic in the service or create a separate guard\n3. Ensure proper error responses (401, 403) for unauthorized access\n4. Update error handling to include authentication/authorization errors\n5. Test authentication flow with valid and invalid JWT tokens\n6. Test authorization with users who own and don't own the campaign\n\n<info added on 2025-04-28T01:45:42.584Z>\nHere's the implementation plan with additional technical details:\n\n```typescript\n// In dashboard.controller.ts\nimport { Controller, Get, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';\nimport { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';\nimport { Request } from 'express';\n\n@Controller('dashboard')\n@UseGuards(JwtAuthGuard) // Apply guard to all routes in controller\nexport class DashboardController {\n  // Extract user from JWT payload\n  @Get('campaign/:id')\n  async getCampaignSummary(@Param('id') campaignId: string, @Req() request: Request) {\n    const userId = request.user.id; // JWT payload contains user info\n    return this.dashboardService.getCampaignSummary(campaignId, userId);\n  }\n}\n\n// In dashboard.service.ts\nimport { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';\n\n@Injectable()\nexport class DashboardService {\n  async getCampaignSummary(campaignId: string, userId: string) {\n    // Check campaign ownership\n    const campaign = await this.campaignRepository.findOne({\n      where: { id: campaignId }\n    });\n    \n    if (!campaign) {\n      throw new NotFoundException('Campaign not found');\n    }\n    \n    if (campaign.userId !== userId) {\n      throw new ForbiddenException('You do not have access to this campaign');\n    }\n    \n    // Continue with existing logic to fetch campaign data\n  }\n}\n\n// Optional: Create a custom CampaignOwnerGuard for reusability\nimport { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';\n\n@Injectable()\nexport class CampaignOwnerGuard implements CanActivate {\n  constructor(private campaignRepository: CampaignRepository) {}\n\n  async canActivate(context: ExecutionContext): Promise<boolean> {\n    const request = context.switchToHttp().getRequest();\n    const userId = request.user.id;\n    const campaignId = request.params.id;\n    \n    const campaign = await this.campaignRepository.findOne({\n      where: { id: campaignId }\n    });\n    \n    if (!campaign || campaign.userId !== userId) {\n      throw new ForbiddenException('Access denied');\n    }\n    \n    return true;\n  }\n}\n```\n</info added on 2025-04-28T01:45:42.584Z>",
+          "status": "done",
+          "parentTaskId": 5
+        },
+        {
+          "id": 5,
+          "title": "Integration testing and documentation",
+          "description": "Create integration tests for the dashboard endpoint and add API documentation.",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "1. Create e2e tests for the dashboard endpoint that:\n   - Tests with valid campaignId and authentication\n   - Tests with invalid campaignId\n   - Tests with missing authentication\n   - Verifies correct response format and data\n2. Add Swagger documentation using @ApiTags and @ApiOperation decorators\n3. Document response schema using @ApiResponse\n4. Document required authentication using @ApiBearerAuth\n5. Verify the endpoint works in the Swagger UI\n6. Update any relevant documentation files\n\n<info added on 2025-04-28T01:46:45.483Z>\nFor the implementation plan:\n\n1. Create a `DashboardSummaryDto` class:\n```typescript\nexport class DashboardSummaryDto {\n  @ApiProperty({ description: 'Total number of emails sent' })\n  totalEmailsSent: number;\n\n  @ApiProperty({ description: 'Open rate percentage' })\n  openRate: number;\n\n  @ApiProperty({ description: 'Click-through rate percentage' })\n  clickRate: number;\n\n  @ApiProperty({ description: 'Conversion rate percentage' })\n  conversionRate: number;\n\n  @ApiProperty({ description: 'Daily statistics breakdown' })\n  dailyStats: DailyStatDto[];\n}\n\nexport class DailyStatDto {\n  @ApiProperty({ description: 'Date of statistics', example: '2023-06-15' })\n  date: string;\n  \n  @ApiProperty({ description: 'Number of emails sent on this date' })\n  sent: number;\n  \n  @ApiProperty({ description: 'Number of emails opened on this date' })\n  opened: number;\n  \n  @ApiProperty({ description: 'Number of links clicked on this date' })\n  clicked: number;\n}\n```\n\n2. For Swagger documentation in controller:\n```typescript\n@ApiTags('Dashboard')\n@Controller('dashboard')\n@ApiBearerAuth()\nexport class DashboardController {\n  @Get(':campaignId')\n  @ApiOperation({ \n    summary: 'Get campaign dashboard summary', \n    description: 'Retrieves performance metrics and statistics for a specific campaign' \n  })\n  @ApiParam({ name: 'campaignId', description: 'ID of the campaign to retrieve dashboard for' })\n  @ApiResponse({ \n    status: 200, \n    description: 'Campaign dashboard data retrieved successfully',\n    type: DashboardSummaryDto\n  })\n  @ApiResponse({ status: 401, description: 'Unauthorized - Missing or invalid authentication' })\n  @ApiResponse({ status: 404, description: 'Campaign not found' })\n  getCampaignSummary() {\n    // TODO: Implement E2E tests for this endpoint after MVP release\n    // Implementation here\n  }\n}\n```\n\n3. For integration testing, create a file structure like:\n```\ntest/\n  integration/\n    dashboard.e2e-spec.ts\n```\n</info added on 2025-04-28T01:46:45.483Z>",
+          "status": "done",
+          "parentTaskId": 5
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Implement Authentication in Frontend",
+      "description": "Create the authentication provider, hooks, and login page in the React frontend.",
+      "status": "done",
+      "dependencies": [
+        1,
+        3
+      ],
+      "priority": "high",
+      "details": "1. Create AuthProvider in src/providers/AuthProvider.tsx\n2. Implement authentication state management with:\n   - user object, token, isLoading, isAuthenticated\n   - login, logout, checkAuthStatus functions\n   - token storage/retrieval using localStorage\n3. Create useAuth hook to access authentication context\n4. Implement LoginPage in src/features/auth/pages/LoginPage.tsx\n5. Create AuthCallbackPage for handling authentication redirects\n6. Implement API client with axios in src/lib/api.ts\n7. Add interceptors to handle authentication headers and token refresh",
+      "testStrategy": "Test login functionality with valid and invalid credentials. Verify that authentication state persists across page refreshes. Test token handling and automatic logout on token expiration. Verify that the API client correctly adds authentication headers to requests.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create API Client with Authentication Interceptors",
+          "description": "Implement the API client using axios with interceptors for authentication headers and token refresh",
+          "dependencies": [],
+          "details": "1. Create src/lib/api.ts file\n2. Set up axios instance with base URL and default headers\n3. Implement request interceptor to add Authorization header with token from localStorage\n4. Implement response interceptor to handle 401 errors and attempt token refresh\n5. Create helper functions for token storage/retrieval in localStorage\n6. Add error handling for network issues\n7. Test by making sample API calls with and without authentication\n\n<info added on 2025-04-28T01:48:08.771Z>\n```typescript\n// Implementation Plan Details\n\n// 1. Token Storage Helpers\nexport const TokenStorage = {\n  getToken: () => localStorage.getItem('auth_token'),\n  setToken: (token: string) => localStorage.setItem('auth_token', token),\n  removeToken: () => localStorage.removeItem('auth_token'),\n  getRefreshToken: () => localStorage.getItem('refresh_token'),\n  setRefreshToken: (token: string) => localStorage.setItem('refresh_token', token),\n  removeRefreshToken: () => localStorage.removeItem('refresh_token'),\n};\n\n// 2. Axios Instance Setup\nimport axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';\n\nconst API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';\n\nexport const apiClient: AxiosInstance = axios.create({\n  baseURL: API_BASE_URL,\n  headers: {\n    'Content-Type': 'application/json',\n  },\n});\n\n// 3. Request Interceptor Example\napiClient.interceptors.request.use(\n  (config) => {\n    const token = TokenStorage.getToken();\n    if (token) {\n      config.headers.Authorization = `Bearer ${token}`;\n    }\n    return config;\n  },\n  (error) => Promise.reject(error)\n);\n\n// 4. Response Interceptor with Refresh Token Logic\nlet isRefreshing = false;\nlet failedQueue: any[] = [];\n\nconst processQueue = (error: any, token: string | null = null) => {\n  failedQueue.forEach(prom => {\n    if (error) {\n      prom.reject(error);\n    } else {\n      prom.resolve(token);\n    }\n  });\n  failedQueue = [];\n};\n\napiClient.interceptors.response.use(\n  (response) => response,\n  async (error: AxiosError) => {\n    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };\n    \n    if (error.response?.status === 401 && !originalRequest._retry) {\n      if (isRefreshing) {\n        return new Promise((resolve, reject) => {\n          failedQueue.push({ resolve, reject });\n        }).then(token => {\n          originalRequest.headers!.Authorization = `Bearer ${token}`;\n          return apiClient(originalRequest);\n        }).catch(err => Promise.reject(err));\n      }\n\n      originalRequest._retry = true;\n      isRefreshing = true;\n\n      try {\n        const refreshToken = TokenStorage.getRefreshToken();\n        if (!refreshToken) {\n          throw new Error('No refresh token available');\n        }\n        \n        // Call your refresh token endpoint\n        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { \n          refreshToken \n        });\n        \n        const { token, refreshToken: newRefreshToken } = response.data;\n        TokenStorage.setToken(token);\n        TokenStorage.setRefreshToken(newRefreshToken);\n        \n        processQueue(null, token);\n        originalRequest.headers!.Authorization = `Bearer ${token}`;\n        return apiClient(originalRequest);\n      } catch (refreshError) {\n        processQueue(refreshError, null);\n        TokenStorage.removeToken();\n        TokenStorage.removeRefreshToken();\n        // Redirect to login or dispatch logout action\n        window.location.href = '/login';\n        return Promise.reject(refreshError);\n      } finally {\n        isRefreshing = false;\n      }\n    }\n    \n    return Promise.reject(error);\n  }\n);\n\n// 5. Export helper functions for common API operations\nexport const api = {\n  get: <T>(url: string, config = {}) => apiClient.get<T>(url, config),\n  post: <T>(url: string, data = {}, config = {}) => apiClient.post<T>(url, data, config),\n  put: <T>(url: string, data = {}, config = {}) => apiClient.put<T>(url, data, config),\n  delete: <T>(url: string, config = {}) => apiClient.delete<T>(url, config),\n};\n```\n</info added on 2025-04-28T01:48:08.771Z>",
+          "status": "done",
+          "parentTaskId": 6
+        },
+        {
+          "id": 2,
+          "title": "Implement Authentication Context Provider",
+          "description": "Create the AuthProvider component to manage authentication state across the application",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create src/providers/AuthProvider.tsx file\n2. Define AuthContext with user object, token, isLoading, isAuthenticated states\n3. Implement login, logout, checkAuthStatus functions using the API client\n4. Set up useEffect to check authentication status on initial load\n5. Implement token storage/retrieval using localStorage functions from API client\n6. Add proper TypeScript interfaces for context values and provider props\n7. Test by manually triggering state changes and observing context updates\n\n<info added on 2025-04-28T01:49:22.276Z>\n```typescript\n// Implementation details for AuthProvider.tsx\n\n// 1. Define interfaces\ninterface AuthUser {\n  id: string;\n  username: string;\n  email: string;\n  // Add other user properties as needed\n}\n\ninterface AuthContextType {\n  user: AuthUser | null;\n  token: string | null;\n  isAuthenticated: boolean;\n  isLoading: boolean;\n  login: (email: string, password: string) => Promise<void>;\n  logout: () => void;\n  checkAuthStatus: () => Promise<boolean>;\n}\n\ninterface AuthProviderProps {\n  children: React.ReactNode;\n}\n\n// 2. Create context with default values\nconst AuthContext = createContext<AuthContextType>({\n  user: null,\n  token: null,\n  isAuthenticated: false,\n  isLoading: true,\n  login: async () => {},\n  logout: () => {},\n  checkAuthStatus: async () => false\n});\n\n// 3. Example implementation of login function\nconst login = async (email: string, password: string) => {\n  setIsLoading(true);\n  try {\n    const response = await apiClient.auth.login(email, password);\n    const { token, user } = response.data;\n    \n    apiClient.setAuthToken(token);\n    localStorage.setItem('auth_token', token);\n    \n    setUser(user);\n    setToken(token);\n    setIsAuthenticated(true);\n  } catch (error) {\n    console.error('Login failed:', error);\n    throw error;\n  } finally {\n    setIsLoading(false);\n  }\n};\n\n// 4. Example implementation of checkAuthStatus\nconst checkAuthStatus = async (): Promise<boolean> => {\n  setIsLoading(true);\n  const storedToken = localStorage.getItem('auth_token');\n  \n  if (!storedToken) {\n    setIsLoading(false);\n    return false;\n  }\n  \n  try {\n    apiClient.setAuthToken(storedToken);\n    const response = await apiClient.auth.getCurrentUser();\n    setUser(response.data.user);\n    setToken(storedToken);\n    setIsAuthenticated(true);\n    setIsLoading(false);\n    return true;\n  } catch (error) {\n    console.error('Token validation failed:', error);\n    logout();\n    setIsLoading(false);\n    return false;\n  }\n};\n\n// 5. Usage example\nexport const useAuth = () => useContext(AuthContext);\n```\n</info added on 2025-04-28T01:49:22.276Z>",
+          "status": "done",
+          "parentTaskId": 6
+        },
+        {
+          "id": 3,
+          "title": "Create useAuth Custom Hook",
+          "description": "Implement a custom hook to easily access authentication context throughout the application",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Create src/hooks/useAuth.ts file\n2. Implement useAuth hook that uses useContext to access AuthContext\n3. Add proper error handling if hook is used outside AuthProvider\n4. Include TypeScript types for return values\n5. Add helper methods for common auth operations if needed\n6. Test by creating a simple component that uses the hook to display auth state\n\n<info added on 2025-04-28T01:51:09.816Z>\n```typescript\n// Implementation for src/hooks/useAuth.ts\nimport { useContext } from 'react';\nimport { AuthContext, AuthContextType } from '../context/AuthContext';\n\nexport const useAuth = (): AuthContextType => {\n  const context = useContext(AuthContext);\n  \n  if (context === undefined) {\n    throw new Error('useAuth must be used within an AuthProvider');\n  }\n  \n  return context;\n};\n\n// Example usage in a component:\n// import { useAuth } from '../hooks/useAuth';\n// \n// const ProfilePage = () => {\n//   const { user, isAuthenticated, login, logout } = useAuth();\n//   \n//   if (!isAuthenticated) {\n//     return <div>Please log in to view your profile</div>;\n//   }\n//   \n//   return (\n//     <div>\n//       <h1>Welcome, {user?.name}</h1>\n//       <button onClick={logout}>Logout</button>\n//     </div>\n//   );\n// };\n\n// Helper methods you might want to include:\n// - isAdmin(): boolean - Check if current user has admin privileges\n// - hasPermission(permission: string): boolean - Check if user has specific permission\n// - refreshToken(): Promise<void> - Method to refresh the authentication token\n```\n</info added on 2025-04-28T01:51:09.816Z>",
+          "status": "done",
+          "parentTaskId": 6
+        },
+        {
+          "id": 4,
+          "title": "Implement Login Page Component",
+          "description": "Create the login page with form validation and authentication flow",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "1. Create src/features/auth/pages/LoginPage.tsx file\n2. Implement login form with username/email and password fields\n3. Add form validation using a form library (e.g., Formik, React Hook Form)\n4. Connect form submission to login function from useAuth hook\n5. Implement loading states during authentication\n6. Add error handling and display for failed login attempts\n7. Implement redirect logic for authenticated users\n8. Test form validation, successful login flow, and error handling",
+          "status": "done",
+          "parentTaskId": 6
+        },
+        {
+          "id": 5,
+          "title": "Create Authentication Callback Page",
+          "description": "Implement the callback page for handling authentication redirects from external providers",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "1. Create src/features/auth/pages/AuthCallbackPage.tsx file\n2. Extract authentication tokens or codes from URL parameters\n3. Use useAuth hook to complete authentication process\n4. Implement loading state while processing authentication\n5. Add error handling for failed authentication\n6. Set up redirect to appropriate page after successful authentication\n7. Test with mock authentication redirects to ensure proper token handling\n\n<info added on 2025-04-28T01:57:16.230Z>\nFor the AuthCallbackPage implementation:\n\n```tsx\n// Example implementation for AuthCallbackPage.tsx\nimport { useEffect, useState } from 'react';\nimport { useNavigate, useLocation } from 'react-router-dom';\nimport { useAuth } from '../hooks/useAuth';\nimport { LoadingSpinner } from '@/components/ui/LoadingSpinner';\n\nconst AuthCallbackPage = () => {\n  const [error, setError] = useState<string | null>(null);\n  const { processAuthCallback } = useAuth();\n  const navigate = useNavigate();\n  const location = useLocation();\n  \n  useEffect(() => {\n    const handleCallback = async () => {\n      try {\n        // Parse URL parameters\n        const params = new URLSearchParams(location.search);\n        const code = params.get('code');\n        const state = params.get('state');\n        const error = params.get('error');\n        \n        if (error) {\n          throw new Error(`Authentication error: ${error}`);\n        }\n        \n        if (!code) {\n          throw new Error('No authentication code received');\n        }\n        \n        // Process the authentication callback\n        await processAuthCallback(code, state);\n        \n        // Get intended destination from state or default to home\n        const destination = state ? JSON.parse(atob(state)).redirectUrl || '/' : '/';\n        navigate(destination, { replace: true });\n      } catch (err) {\n        console.error('Authentication callback error:', err);\n        setError(err instanceof Error ? err.message : 'Authentication failed');\n      }\n    };\n    \n    handleCallback();\n  }, [location, navigate, processAuthCallback]);\n  \n  if (error) {\n    return (\n      <div className=\"auth-callback-error\">\n        <h2>Authentication Failed</h2>\n        <p>{error}</p>\n        <button onClick={() => navigate('/login')}>Return to Login</button>\n      </div>\n    );\n  }\n  \n  return (\n    <div className=\"auth-callback-loading\">\n      <LoadingSpinner size=\"large\" />\n      <p>Completing authentication, please wait...</p>\n    </div>\n  );\n};\n\nexport default AuthCallbackPage;\n```\n\nNote: This implementation assumes the `processAuthCallback` method exists in the `useAuth` hook. For testing, you can create mock redirects with URL parameters like `?code=test_code&state=encoded_state_data` to simulate provider callbacks.\n</info added on 2025-04-28T01:57:16.230Z>",
+          "status": "done",
+          "parentTaskId": 6
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Implement Campaign Context and Selection in Frontend",
+      "description": "Create the campaign provider and campaign selector component to manage the active campaign context.",
+      "status": "done",
+      "dependencies": [
+        6
+      ],
+      "priority": "high",
+      "details": "1. Create CampaignProvider in src/providers/CampaignProvider.tsx\n2. Implement campaign state management with:\n   - availableCampaigns (array of {id, name})\n   - activeCampaignId (string | null)\n   - isLoadingCampaigns flag\n3. Fetch campaigns using react-query upon successful authentication\n4. Persist activeCampaignId to localStorage\n5. Set default active campaign if none selected\n6. Create useCampaign hook to access campaign context\n7. Implement CampaignSelector component in src/components/campaign/CampaignSelector.tsx using Shadcn Select or DropdownMenu",
+      "testStrategy": "Test campaign fetching and selection. Verify that the active campaign persists across page refreshes. Test the CampaignSelector component with various campaign lists. Verify that changing the active campaign updates the context and localStorage.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define Campaign Context interfaces and create CampaignProvider.tsx",
+          "description": "Define TypeScript interfaces for Campaign context and create the basic provider component structure.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 2,
+          "title": "Implement Campaign state and localStorage persistence",
+          "description": "Implement state variables, localStorage persistence for active campaign ID, and update initial state loading.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 3,
+          "title": "Implement Campaign Fetching Logic",
+          "description": "Implement fetching available campaigns using react-query after user authentication, update state, and handle default active campaign selection.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 4,
+          "title": "Create useCampaign Custom Hook",
+          "description": "Create a custom hook `useCampaign` to easily consume the CampaignContext.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 5,
+          "title": "Implement CampaignSelector Component",
+          "description": "Implement a component to display and select the active campaign using Shadcn UI.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 7
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Implement Routing and Layout Components",
+      "description": "Set up routing with react-router-dom and create the main layout components for the application.",
+      "status": "done",
+      "dependencies": [
+        7
+      ],
+      "priority": "high",
+      "details": "1. Set up routing using createBrowserRouter in src/routes/index.tsx\n2. Create RootLayout.tsx with all global providers\n3. Implement ProtectedRoute.tsx to check authentication and redirect if needed\n4. Create AppLayout.tsx with the main application shell\n5. Implement Header.tsx with app title/logo, CampaignSelector, and UserNav\n6. Create Sidebar.tsx with navigation links to feature sections\n7. Implement UserNav.tsx with user info and logout option\n8. Define all routes according to the PRD:\n   - Public: /login, /auth/callback\n   - Protected: /dashboard, /content/*, /planning-library/*, /media-library/*, /media-needs, /admin/campaigns, /settings",
+      "testStrategy": "Test navigation between routes. Verify that protected routes redirect to login when not authenticated. Test that the active route is highlighted in the sidebar. Verify that the UserNav correctly displays user information and handles logout.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Set up React Router Configuration",
+          "description": "Create the router configuration using createBrowserRouter with public and protected route definitions",
+          "dependencies": [],
+          "details": "1. Install react-router-dom if not already installed\n2. Create src/routes/index.tsx file\n3. Define route constants for all paths (public and protected)\n4. Set up createBrowserRouter with basic route structure\n5. Define public routes (/login, /auth/callback)\n6. Create placeholder components for each route\n7. Test that basic navigation works between public routes\n8. Export the router for use in the application entry point",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement RootLayout and ProtectedRoute Components",
+          "description": "Create the root layout with global providers and implement protected route logic",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create src/components/layouts/RootLayout.tsx component\n2. Set up global providers (auth, theme, etc.) in RootLayout\n3. Implement Outlet from react-router for rendering child routes\n4. Create src/components/auth/ProtectedRoute.tsx component\n5. Implement authentication check logic in ProtectedRoute\n6. Add redirect to login if user is not authenticated\n7. Test that unauthenticated users are redirected to login\n8. Test that authenticated users can access protected content",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Create Header Component with Navigation Elements",
+          "description": "Implement the Header component with app title/logo, campaign selector, and user navigation",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Create src/components/layouts/Header.tsx component\n2. Design and implement the header layout with flexbox/grid\n3. Add app title and logo placeholder\n4. Create a basic CampaignSelector component (dropdown)\n5. Create UserNav.tsx component with user info display\n6. Add logout functionality to UserNav\n7. Style all components according to design guidelines\n8. Test that header renders correctly and user navigation works",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 4,
+          "title": "Implement Sidebar Navigation Component",
+          "description": "Create the sidebar with navigation links to all feature sections",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Create src/components/layouts/Sidebar.tsx component\n2. Design the sidebar layout with navigation links\n3. Implement navigation links to all protected routes\n4. Add active state styling for current route\n5. Make sidebar responsive (collapsible on smaller screens)\n6. Add icons for each navigation item\n7. Style according to design guidelines\n8. Test that navigation links work correctly and active states update",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 5,
+          "title": "Assemble AppLayout and Connect All Routes",
+          "description": "Create the main application shell and connect all routing components",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "1. Create src/components/layouts/AppLayout.tsx\n2. Combine Header and Sidebar components in AppLayout\n3. Add main content area with Outlet for child routes\n4. Update router configuration to use layouts appropriately\n5. Connect protected routes with ProtectedRoute component\n6. Ensure all routes are properly nested under correct layouts\n7. Test complete navigation flow from login to all protected routes\n8. Verify that layouts render correctly on different screen sizes",
+          "status": "done",
+          "parentTaskId": 8
+        },
+        {
+          "id": 6,
+          "title": "Set up React Router Configuration",
+          "description": "Create the main router configuration using createBrowserRouter, define public routes, and integrate with main.tsx.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 7,
+          "title": "Implement RootLayout and ProtectedRoute Components",
+          "description": "Create RootLayout to wrap providers (or just Outlet), and ProtectedRoute component to guard routes based on authentication status.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 8,
+          "title": "Implement Header and UserNav Components",
+          "description": "Create Header component including App Title, CampaignSelector, and a UserNav dropdown menu.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 9,
+          "title": "Implement Sidebar Component",
+          "description": "Create Sidebar component with navigation links, icons, and active state highlighting.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 10,
+          "title": "Implement AppLayout and Finalize Routing",
+          "description": "Create the main AppLayout component combining Header, Sidebar, and Outlet for page content. Update router to use AppLayout.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Implement Dashboard Page in Frontend",
+      "description": "Create the dashboard page that displays summary statistics for the active campaign.",
+      "status": "done",
+      "dependencies": [
+        5,
+        8
+      ],
+      "priority": "medium",
+      "details": "1. Create DashboardPage in src/features/dashboard/pages/DashboardPage.tsx\n2. Use useAuth and useCampaign hooks to access authentication and campaign context\n3. Use react-query (useQuery) to fetch dashboard summary data for the activeCampaignId\n4. Implement loading states using Shadcn Skeleton components\n5. Display fetched statistics using Shadcn Card components\n6. Handle the case where activeCampaignId is null or no campaigns are available\n7. Add error handling for failed API requests",
+      "testStrategy": "Test the dashboard with various campaign IDs. Verify that loading states are displayed correctly. Test error handling by simulating API failures. Verify that the dashboard updates when the active campaign changes.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Error Handling",
+          "description": "Add error handling for the API request (e.g., display an error message if the fetch fails).",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 9
+        },
+        {
+          "id": 2,
+          "title": "Implement Data Display",
+          "description": "Once data is fetched, display the statistics using Shadcn Card components. Structure the layout for the dashboard summary.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 9
+        },
+        {
+          "id": 3,
+          "title": "Implement Loading State",
+          "description": "Use Shadcn Skeleton components to display a loading state while the data is being fetched.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 9
+        },
+        {
+          "id": 4,
+          "title": "Implement Data Fetching with React Query",
+          "description": "Create the useQuery hook to fetch dashboard summary data for the activeCampaignId from the backend endpoint (Task 5). Handle the case where activeCampaignId is null.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 9
+        },
+        {
+          "id": 5,
+          "title": "Create Dashboard Page Component Structure",
+          "description": "Set up the basic file src/features/dashboard/pages/DashboardPage.tsx and component structure. Import necessary hooks (useAuth, useCampaign).",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 9
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Implement Content Management Backend",
+      "description": "Create the content management module in the backend with CRUD operations for content items.",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "1. Create ContentManagementModule in src/features/content-management/\n2. Define ContentItem model in Prisma schema with relations to Campaign\n3. Create DTOs for content creation, update, and response\n4. Implement ContentManagementService with CRUD operations\n5. Implement ContentManagementController with endpoints for:\n   - GET /api/v1/campaigns/:campaignId/content (list content items)\n   - POST /api/v1/campaigns/:campaignId/content (create content item)\n   - GET /api/v1/campaigns/:campaignId/content/:id (get content item)\n   - PATCH /api/v1/campaigns/:campaignId/content/:id (update content item)\n   - DELETE /api/v1/campaigns/:campaignId/content/:id (delete content item)\n6. Add validation for campaignId and content item data\n7. Run `npx prisma migrate dev` to update the database schema",
+      "testStrategy": "Test all CRUD endpoints using Postman or curl. Verify that content items are correctly associated with campaigns. Test validation of input data and proper error handling.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define ContentItem model in Prisma schema",
+          "description": "Create the ContentItem model in the Prisma schema with appropriate fields and relations to the Campaign model",
+          "dependencies": [],
+          "details": "1. Open the Prisma schema file (schema.prisma)\n2. Define the ContentItem model with fields like id, title, description, content, contentType, status, createdAt, updatedAt\n3. Add a relation field to connect to the Campaign model (campaignId as a foreign key)\n4. Ensure proper indexing for performance\n5. Test by running `npx prisma db pull` to verify schema validity without applying changes yet",
+          "status": "done",
+          "parentTaskId": 10
+        },
+        {
+          "id": 2,
+          "title": "Create ContentManagementModule structure and DTOs",
+          "description": "Set up the module structure and create Data Transfer Objects for content operations",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create directory structure at src/features/content-management/\n2. Create content-management.module.ts file\n3. Create DTOs in a dto/ subfolder:\n   - create-content.dto.ts (with validation decorators)\n   - update-content.dto.ts (with partial validation)\n   - content-response.dto.ts\n4. Create content-management.types.ts for interfaces and types\n5. Test by importing the module in the app.module.ts to verify structure",
+          "status": "done",
+          "parentTaskId": 10
+        },
+        {
+          "id": 3,
+          "title": "Implement ContentManagementService with CRUD operations",
+          "description": "Create the service layer with methods for creating, reading, updating, and deleting content items",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create content-management.service.ts\n2. Inject PrismaService for database operations\n3. Implement methods:\n   - createContent(campaignId, createContentDto)\n   - getContentItems(campaignId, filters)\n   - getContentById(campaignId, id)\n   - updateContent(campaignId, id, updateContentDto)\n   - deleteContent(campaignId, id)\n4. Add validation to ensure content belongs to specified campaign\n5. Add error handling for not found cases\n6. Write unit tests for the service in content-management.service.spec.ts",
+          "status": "done",
+          "parentTaskId": 10
+        },
+        {
+          "id": 4,
+          "title": "Implement ContentManagementController with API endpoints",
+          "description": "Create the controller with REST endpoints for content management operations",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "1. Create content-management.controller.ts\n2. Inject ContentManagementService\n3. Implement endpoints with proper decorators:\n   - @Get('/campaigns/:campaignId/content')\n   - @Post('/campaigns/:campaignId/content')\n   - @Get('/campaigns/:campaignId/content/:id')\n   - @Patch('/campaigns/:campaignId/content/:id')\n   - @Delete('/campaigns/:campaignId/content/:id')\n4. Add validation pipes for request data\n5. Add proper response status codes and error handling\n6. Document endpoints with Swagger annotations\n7. Write e2e tests for the controller endpoints",
+          "status": "done",
+          "parentTaskId": 10
+        },
+        {
+          "id": 5,
+          "title": "Apply database migration and finalize module integration",
+          "description": "Run database migration, register the module, and ensure proper integration with the rest of the application",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "1. Run `npx prisma migrate dev --name add_content_management` to create and apply the migration\n2. Update the ContentManagementModule to import and export necessary components\n3. Register the module in the app.module.ts\n4. Add appropriate guards and interceptors for authentication/authorization\n5. Test the complete flow with API requests to all endpoints\n6. Verify database operations are working correctly\n7. Document the API endpoints in the project documentation",
+          "status": "done",
+          "parentTaskId": 10
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Implement Planning Library Backend",
+      "description": "Create the planning library module in the backend for managing planning documents per campaign.",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "1. Create PlanningLibraryModule in src/features/planning-library/\n2. Define PlanningDocument model in Prisma schema with relations to Campaign\n3. Create StorageModule and StorageService for file handling\n4. Create DTOs for document upload, update, and response\n5. Implement PlanningLibraryService with operations for document management\n6. Implement PlanningLibraryController with endpoints for:\n   - GET /api/v1/campaigns/:campaignId/planning-documents (list documents)\n   - POST /api/v1/campaigns/:campaignId/planning-documents (upload document)\n   - GET /api/v1/campaigns/:campaignId/planning-documents/:id (get document)\n   - DELETE /api/v1/campaigns/:campaignId/planning-documents/:id (delete document)\n7. Configure file storage using Railway volume\n8. Run `npx prisma migrate dev` to update the database schema",
+      "testStrategy": "Test document upload and retrieval. Verify that documents are correctly stored and associated with campaigns. Test file type validation and size limits. Test error handling for invalid requests.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define PlanningDocument model and create database migration",
+          "description": "Create the PlanningDocument model in the Prisma schema with proper relations to the Campaign model and generate the migration files.",
+          "dependencies": [],
+          "details": "1. Open the Prisma schema file (schema.prisma)\n2. Define the PlanningDocument model with fields:\n   - id (UUID)\n   - name (String)\n   - description (String, optional)\n   - fileUrl (String)\n   - fileSize (Int)\n   - fileType (String)\n   - uploadedAt (DateTime)\n   - campaignId (UUID, foreign key)\n3. Define the relation to Campaign model\n4. Add a documents relation field in the Campaign model\n5. Run `npx prisma migrate dev --name add_planning_documents` to create the migration\n6. Verify the migration SQL file is correct\n7. Test by checking the database schema after migration",
+          "status": "done",
+          "parentTaskId": 11
+        },
+        {
+          "id": 2,
+          "title": "Create Storage Module and Service for file handling",
+          "description": "Implement a storage module and service to handle file uploads, retrievals, and deletions using Railway volume.",
+          "dependencies": [],
+          "details": "1. Create src/features/storage/storage.module.ts\n2. Create src/features/storage/storage.service.ts\n3. Implement StorageService with methods:\n   - uploadFile(file: Express.Multer.File): Promise<string> - returns file URL\n   - getFile(fileUrl: string): Promise<Buffer>\n   - deleteFile(fileUrl: string): Promise<void>\n4. Configure the service to use Railway volume for storage\n5. Add proper error handling for file operations\n6. Register the module in app.module.ts\n7. Test the service with mock files to ensure proper file handling",
+          "status": "done",
+          "parentTaskId": 11
+        },
+        {
+          "id": 3,
+          "title": "Create Planning Library Module structure and DTOs",
+          "description": "Set up the Planning Library module structure and define the necessary DTOs for document operations.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create the following files:\n   - src/features/planning-library/planning-library.module.ts\n   - src/features/planning-library/planning-library.service.ts\n   - src/features/planning-library/planning-library.controller.ts\n   - src/features/planning-library/dto/create-planning-document.dto.ts\n   - src/features/planning-library/dto/update-planning-document.dto.ts\n   - src/features/planning-library/dto/planning-document-response.dto.ts\n2. Define CreatePlanningDocumentDto with fields for document metadata\n3. Define UpdatePlanningDocumentDto with optional fields\n4. Define PlanningDocumentResponseDto for API responses\n5. Set up the module structure with proper imports\n6. Test the DTOs with validation pipes to ensure they work correctly",
+          "status": "done",
+          "parentTaskId": 11
+        },
+        {
+          "id": 4,
+          "title": "Implement Planning Library Service",
+          "description": "Implement the service layer for managing planning documents with CRUD operations.",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "1. Inject PrismaService and StorageService in PlanningLibraryService\n2. Implement the following methods:\n   - createDocument(campaignId: string, file: Express.Multer.File, data: CreatePlanningDocumentDto): Promise<PlanningDocumentResponseDto>\n   - getDocuments(campaignId: string): Promise<PlanningDocumentResponseDto[]>\n   - getDocumentById(campaignId: string, documentId: string): Promise<PlanningDocumentResponseDto>\n   - deleteDocument(campaignId: string, documentId: string): Promise<void>\n3. Add proper error handling for database operations\n4. Implement transaction handling for operations that modify both database and storage\n5. Add validation to ensure documents belong to the specified campaign\n6. Write unit tests for the service methods using Jest",
+          "status": "done",
+          "parentTaskId": 11
+        },
+        {
+          "id": 5,
+          "title": "Implement Planning Library Controller with API endpoints",
+          "description": "Create the controller with REST endpoints for document management and integrate with the service layer.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "1. Inject PlanningLibraryService in PlanningLibraryController\n2. Implement the following endpoints:\n   - GET /api/v1/campaigns/:campaignId/planning-documents\n   - POST /api/v1/campaigns/:campaignId/planning-documents (use @UploadedFile() decorator with Multer)\n   - GET /api/v1/campaigns/:campaignId/planning-documents/:id\n   - DELETE /api/v1/campaigns/:campaignId/planning-documents/:id\n3. Add proper request validation using class-validator\n4. Add authentication and authorization guards\n5. Configure Swagger documentation for the endpoints\n6. Add proper error responses and status codes\n7. Test all endpoints using Postman or similar tool\n8. Write e2e tests for the controller endpoints",
+          "status": "done",
+          "parentTaskId": 11
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Implement Media Library Backend",
+      "description": "Create the media library module in the backend for managing media assets and requirements per campaign.",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "1. Create MediaLibraryModule in src/features/media-library/\n2. Define MediaAsset and MediaRequirement models in Prisma schema with relations to Campaign\n3. Create DTOs for media upload, requirement creation, and responses\n4. Implement MediaLibraryService with operations for asset and requirement management\n5. Implement MediaLibraryController with endpoints for:\n   - GET /api/v1/campaigns/:campaignId/media-assets (list assets)\n   - POST /api/v1/campaigns/:campaignId/media-assets (upload asset)\n   - DELETE /api/v1/campaigns/:campaignId/media-assets/:id (delete asset)\n   - GET /api/v1/campaigns/:campaignId/media-requirements (list requirements)\n   - POST /api/v1/campaigns/:campaignId/media-requirements (create requirement)\n   - PATCH /api/v1/campaigns/:campaignId/media-requirements/:id (update requirement)\n   - DELETE /api/v1/campaigns/:campaignId/media-requirements/:id (delete requirement)\n6. Configure media file storage using Railway volume\n7. Run `npx prisma migrate dev` to update the database schema",
+      "testStrategy": "Test media upload and retrieval. Verify that media assets and requirements are correctly associated with campaigns. Test file type validation and size limits. Test CRUD operations for media requirements.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Media Library Module and Prisma Schema Models",
+          "description": "Set up the module structure and define database models for media assets and requirements",
+          "dependencies": [],
+          "details": "1. Create the MediaLibraryModule directory structure in src/features/media-library/\n2. Add the module file (media-library.module.ts) with basic imports\n3. Update the Prisma schema in schema.prisma to add:\n   - MediaAsset model with fields: id, name, url, fileSize, mimeType, campaignId, createdAt, updatedAt\n   - MediaRequirement model with fields: id, title, description, required (boolean), campaignId, createdAt, updatedAt\n   - Add proper relations to the Campaign model\n4. Run `npx prisma migrate dev` to create a migration and update the database\n5. Test by verifying the migration was successful and the tables were created correctly",
+          "status": "done",
+          "parentTaskId": 12
+        },
+        {
+          "id": 2,
+          "title": "Implement DTOs and Service for Media Assets",
+          "description": "Create data transfer objects and service methods for media asset operations",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create DTO files in src/features/media-library/dto/:\n   - create-media-asset.dto.ts (for upload requests)\n   - media-asset.dto.ts (for responses)\n2. Implement MediaLibraryService in media-library.service.ts with methods:\n   - getMediaAssets(campaignId): Retrieve all media assets for a campaign\n   - uploadMediaAsset(campaignId, file, metadata): Upload and store a new media asset\n   - deleteMediaAsset(id, campaignId): Remove a media asset\n3. Configure file storage using Railway volume in the service\n4. Add proper error handling for file operations\n5. Test the service methods using unit tests with mock Prisma client",
+          "status": "done",
+          "parentTaskId": 12
+        },
+        {
+          "id": 3,
+          "title": "Implement DTOs and Service for Media Requirements",
+          "description": "Create data transfer objects and service methods for media requirement operations",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create DTO files in src/features/media-library/dto/:\n   - create-media-requirement.dto.ts\n   - update-media-requirement.dto.ts\n   - media-requirement.dto.ts (for responses)\n2. Extend MediaLibraryService with methods:\n   - getMediaRequirements(campaignId): Retrieve all requirements for a campaign\n   - createMediaRequirement(campaignId, data): Create a new requirement\n   - updateMediaRequirement(id, campaignId, data): Update an existing requirement\n   - deleteMediaRequirement(id, campaignId): Remove a requirement\n3. Add validation logic and error handling\n4. Test the service methods using unit tests with mock Prisma client",
+          "status": "done",
+          "parentTaskId": 12
+        },
+        {
+          "id": 4,
+          "title": "Implement Media Assets Controller Endpoints",
+          "description": "Create controller endpoints for managing media assets",
+          "dependencies": [
+            2
+          ],
+          "details": "1. Create media-library.controller.ts file\n2. Implement the following endpoints:\n   - GET /api/v1/campaigns/:campaignId/media-assets\n     - Add pagination support with query parameters\n     - Add proper authorization checks for campaign access\n   - POST /api/v1/campaigns/:campaignId/media-assets\n     - Use NestJS FileInterceptor for file upload handling\n     - Validate file types and sizes\n     - Return appropriate response with created asset data\n   - DELETE /api/v1/campaigns/:campaignId/media-assets/:id\n     - Add validation to ensure the asset exists and belongs to the campaign\n3. Add proper error handling and HTTP status codes\n4. Test endpoints using integration tests with supertest",
+          "status": "done",
+          "parentTaskId": 12
+        },
+        {
+          "id": 5,
+          "title": "Implement Media Requirements Controller Endpoints",
+          "description": "Create controller endpoints for managing media requirements",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "1. Extend media-library.controller.ts with the following endpoints:\n   - GET /api/v1/campaigns/:campaignId/media-requirements\n     - Add pagination support with query parameters\n     - Add proper authorization checks for campaign access\n   - POST /api/v1/campaigns/:campaignId/media-requirements\n     - Validate input using the create DTO\n     - Return appropriate response with created requirement data\n   - PATCH /api/v1/campaigns/:campaignId/media-requirements/:id\n     - Validate input using the update DTO\n     - Add validation to ensure the requirement exists and belongs to the campaign\n   - DELETE /api/v1/campaigns/:campaignId/media-requirements/:id\n     - Add validation to ensure the requirement exists and belongs to the campaign\n2. Update the MediaLibraryModule to include the controller and service\n3. Add proper error handling and HTTP status codes\n4. Test endpoints using integration tests with supertest\n5. Update the main app module to include the MediaLibraryModule",
+          "status": "done",
+          "parentTaskId": 12
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Implement Content Management Frontend",
+      "description": "Create the content management pages and components in the frontend for creating, editing, and listing content items.",
+      "status": "done",
+      "dependencies": [
+        8,
+        10
+      ],
+      "priority": "medium",
+      "details": "1. Create content management components in src/features/content-management/components/\n   - ContentList.tsx\n   - ContentForm.tsx\n   - PlatformSelect.tsx\n   - StatusSelect.tsx\n2. Implement hooks in src/features/content-management/hooks/\n   - useContentItems.ts (fetches content items for active campaign)\n3. Create pages in src/features/content-management/pages/\n   - ContentListPage.tsx\n   - NewContentPage.tsx\n   - EditContentPage.tsx\n4. Use react-query for data fetching and mutations\n5. Implement form validation and error handling\n6. Add loading and error states",
+      "testStrategy": "Test content creation, editing, and deletion. Verify that content items are correctly displayed in the list. Test form validation and error handling. Verify that the content management pages update when the active campaign changes.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create Base Components for Content Management",
+          "description": "Implement the foundational components needed for content management including PlatformSelect and StatusSelect components.",
+          "dependencies": [],
+          "details": "1. Create src/features/content-management/components/ directory\n2. Implement PlatformSelect.tsx component that renders a dropdown for selecting content platforms (e.g., Facebook, Instagram, Twitter)\n3. Implement StatusSelect.tsx component that renders a dropdown for content status (e.g., Draft, Published, Scheduled)\n4. Add appropriate styling using the project's styling approach\n5. Create unit tests for both components to verify they render correctly and handle selection changes\n6. Ensure components are accessible and follow design system guidelines\n7. Test with different screen sizes to ensure responsive behavior",
+          "status": "done",
+          "parentTaskId": 13
+        },
+        {
+          "id": 2,
+          "title": "Implement Data Fetching Hooks with React Query",
+          "description": "Create the hooks needed for fetching and managing content data using react-query.",
+          "dependencies": [],
+          "details": "1. Create src/features/content-management/hooks/ directory\n2. Implement useContentItems.ts hook that:\n   - Uses react-query's useQuery to fetch content items for the active campaign\n   - Handles loading, error, and success states\n   - Includes pagination support if needed\n   - Provides filtering capabilities\n3. Create additional hooks for content mutations:\n   - useCreateContent.ts (for creating new content)\n   - useUpdateContent.ts (for updating existing content)\n   - useDeleteContent.ts (for deleting content)\n4. Implement proper error handling and retry logic\n5. Add tests for all hooks using react-testing-library and msw for API mocking",
+          "status": "done",
+          "parentTaskId": 13
+        },
+        {
+          "id": 3,
+          "title": "Build ContentList Component and List Page",
+          "description": "Create the ContentList component and the ContentListPage that displays all content items.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Implement ContentList.tsx component that:\n   - Accepts content items as props\n   - Renders a table or grid of content items\n   - Includes sorting and filtering capabilities\n   - Shows relevant content metadata (title, platform, status, created date)\n   - Has actions for edit and delete\n2. Create ContentListPage.tsx in the pages directory that:\n   - Uses the useContentItems hook to fetch data\n   - Renders the ContentList component with fetched data\n   - Handles loading states with a skeleton loader\n   - Displays error messages when fetch fails\n   - Includes a button to create new content\n3. Implement pagination if there are many content items\n4. Add tests for both the component and page\n5. Ensure the list is responsive and works on mobile devices",
+          "status": "done",
+          "parentTaskId": 13
+        },
+        {
+          "id": 4,
+          "title": "Implement ContentForm Component with Validation",
+          "description": "Create the ContentForm component with form validation for creating and editing content.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Implement ContentForm.tsx component that:\n   - Uses a form library (e.g., Formik, React Hook Form) for form state management\n   - Includes fields for all content properties (title, description, platform, status, etc.)\n   - Uses PlatformSelect and StatusSelect components\n   - Implements validation rules for all fields\n   - Shows validation errors inline\n   - Handles form submission\n   - Supports both create and edit modes\n2. Implement client-side validation for:\n   - Required fields\n   - Character limits\n   - Format validation where applicable\n3. Add proper error handling for API errors\n4. Include a preview capability if applicable\n5. Write comprehensive tests for form validation and submission logic\n6. Ensure the form is accessible with proper labels and ARIA attributes",
+          "status": "done",
+          "parentTaskId": 13
+        },
+        {
+          "id": 5,
+          "title": "Create New and Edit Content Pages",
+          "description": "Implement the NewContentPage and EditContentPage that use the ContentForm for creating and editing content.",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "1. Create NewContentPage.tsx that:\n   - Renders the ContentForm in create mode\n   - Uses useCreateContent hook for form submission\n   - Handles success with a redirect to the content list\n   - Shows appropriate loading states during submission\n   - Displays error messages when submission fails\n2. Create EditContentPage.tsx that:\n   - Fetches existing content data using an ID from the URL\n   - Renders ContentForm in edit mode with pre-populated data\n   - Uses useUpdateContent hook for form submission\n   - Handles loading states for both initial fetch and submission\n   - Shows appropriate error messages\n   - Includes a confirmation dialog for canceling edits\n3. Add navigation between pages (list → new/edit, new/edit → list)\n4. Implement tests for both pages\n5. Add route definitions in the application's router configuration",
+          "status": "done",
+          "parentTaskId": 13
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Implement Planning Library and Media Management Frontend",
+      "description": "Create the planning library and media management pages and components in the frontend.",
+      "status": "done",
+      "dependencies": [
+        8,
+        11,
+        12
+      ],
+      "priority": "medium",
+      "details": "1. Create planning library components in src/features/planning-library/components/\n   - PlanningDocumentList.tsx\n   - UploadForm.tsx\n2. Implement planning library hooks in src/features/planning-library/hooks/\n   - usePlanningDocuments.ts\n3. Create planning library pages in src/features/planning-library/pages/\n   - PlanningLibraryPage.tsx\n   - UploadDocumentPage.tsx\n4. Create media library components in src/features/media-library/components/\n   - MediaAssetList.tsx\n   - MediaUploadForm.tsx\n   - MediaAssetCard.tsx\n   - MediaRequirementPlaceholder.tsx\n   - MediaNeedsList.tsx\n   - AddMediaRequirementDialog.tsx\n5. Implement media library hooks in src/features/media-library/hooks/\n   - useMediaAssets.ts\n   - useMediaNeeds.ts\n6. Create media library pages in src/features/media-library/pages/\n   - MediaLibraryPage.tsx\n   - UploadMediaPage.tsx\n   - MediaNeedsPage.tsx\n7. Use react-query for data fetching and mutations\n8. Implement file upload functionality with progress indicators\n9. Add loading and error states",
+      "testStrategy": "Test document and media upload functionality. Verify that files are correctly displayed after upload. Test media requirement creation and management. Verify that the pages update when the active campaign changes.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Planning Library Core Components and Hooks",
+          "description": "Create the foundational components and hooks for the planning library feature, including document listing and data fetching functionality.",
+          "dependencies": [],
+          "details": "1. Create `usePlanningDocuments.ts` hook in src/features/planning-library/hooks/ that uses react-query to fetch planning documents from the API\n2. Implement loading, error, and success states in the hook\n3. Create `PlanningDocumentList.tsx` component that displays planning documents in a list/grid format\n4. Add filtering and sorting capabilities to the document list\n5. Implement skeleton loaders for loading states\n6. Add error handling with user-friendly error messages\n7. Test the hook with mock data and verify the component renders correctly in different states",
+          "status": "done",
+          "parentTaskId": 14
+        },
+        {
+          "id": 2,
+          "title": "Implement Planning Library Pages and Upload Functionality",
+          "description": "Create the planning library pages and document upload functionality with progress indicators.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create `PlanningLibraryPage.tsx` that integrates the PlanningDocumentList component\n2. Implement `UploadForm.tsx` component with file input, validation, and metadata fields\n3. Add progress indicator for file uploads using appropriate libraries\n4. Create `UploadDocumentPage.tsx` that uses the UploadForm component\n5. Implement the document upload mutation in usePlanningDocuments.ts using react-query\n6. Add navigation between the pages\n7. Test file upload functionality with various file types and sizes\n8. Verify that upload progress is displayed correctly",
+          "status": "done",
+          "parentTaskId": 14
+        },
+        {
+          "id": 3,
+          "title": "Implement Media Library Core Components and Hooks",
+          "description": "Create the foundational components and hooks for the media library feature, including media asset listing and data fetching.",
+          "dependencies": [],
+          "details": "1. Create `useMediaAssets.ts` hook in src/features/media-library/hooks/ using react-query for fetching media assets\n2. Implement `MediaAssetCard.tsx` component to display individual media items with thumbnails and metadata\n3. Create `MediaAssetList.tsx` component that displays a grid of MediaAssetCard components\n4. Add filtering and search functionality for media assets\n5. Implement loading states with skeleton loaders\n6. Add error handling with appropriate user feedback\n7. Test the components with various media types (images, videos, etc.)\n8. Verify responsive behavior on different screen sizes",
+          "status": "done",
+          "parentTaskId": 14
+        },
+        {
+          "id": 4,
+          "title": "Implement Media Upload and Library Page",
+          "description": "Create the media upload functionality and main media library page with proper integration of components.",
+          "dependencies": [
+            3
+          ],
+          "details": "1. Create `MediaUploadForm.tsx` component with file input, validation, and metadata fields\n2. Implement file upload mutation in useMediaAssets.ts using react-query\n3. Add upload progress indicator and success/error feedback\n4. Create `UploadMediaPage.tsx` that integrates the MediaUploadForm\n5. Implement `MediaLibraryPage.tsx` that uses the MediaAssetList component\n6. Add navigation between pages\n7. Test upload functionality with various media types and sizes\n8. Verify that uploaded media appears correctly in the media library",
+          "status": "done",
+          "parentTaskId": 14
+        },
+        {
+          "id": 5,
+          "title": "Implement Media Needs Management",
+          "description": "Create the media needs tracking functionality, including listing, adding, and managing media requirements.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "1. Create `useMediaNeeds.ts` hook for fetching and managing media requirements\n2. Implement `MediaRequirementPlaceholder.tsx` component to represent unfulfilled media needs\n3. Create `MediaNeedsList.tsx` component to display all media requirements\n4. Implement `AddMediaRequirementDialog.tsx` with form fields for creating new media requirements\n5. Create `MediaNeedsPage.tsx` that integrates these components\n6. Add functionality to link existing media assets to requirements\n7. Implement status tracking for media requirements (pending, fulfilled, etc.)\n8. Test the complete workflow of creating, viewing, and fulfilling media requirements",
+          "status": "done",
+          "parentTaskId": 14
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Implement Global Error Handling and Final Polishing",
+      "description": "Add global error handling, loading indicators, and final UI polishing to the application.",
+      "status": "done",
+      "dependencies": [
+        9,
+        13,
+        14
+      ],
+      "priority": "low",
+      "details": "1. Create global error boundary component\n2. Implement global loading indicator (top progress bar)\n3. Add global error toast notifications using Shadcn Toast\n4. Enhance API client to handle common error scenarios\n5. Add confirmation dialogs for destructive actions\n6. Implement responsive design adjustments for mobile devices\n7. Add final UI polish and consistent styling\n8. Perform cross-browser testing\n9. Optimize bundle size and loading performance",
+      "testStrategy": "Test error handling by simulating various error scenarios. Verify that loading indicators are displayed correctly. Test the application on different devices and browsers. Measure and optimize loading performance."
+    },
+    {
+      "id": 16,
+      "title": "Prepare Frontend and Backend for Production Deployment",
+      "description": "Configure both frontend and backend codebases for production deployment with proper security measures, environment configuration, and deployment readiness checks.",
+      "details": "This task involves preparing both codebases for production deployment:\n\nBackend:\n1. Implement a health check endpoint at `/health` or `/api/health` that returns HTTP 200 and basic system status\n2. Configure CORS to only allow requests from approved origins (production domain and potentially staging)\n3. Ensure all sensitive data (DB credentials, API keys, JWT secrets) use environment variables\n4. Verify error handling doesn't expose sensitive stack traces in production\n5. Set up proper logging that's appropriate for production (no sensitive data)\n6. Ensure rate limiting is configured for authentication endpoints\n\nFrontend:\n1. Update API URL configuration to use environment variables\n2. Verify build scripts produce optimized assets (minification, tree-shaking)\n3. Implement environment-specific configuration for development vs production\n4. Remove any development-only code or debugging tools from production builds\n5. Ensure all API calls use the configured base URL rather than hardcoded values\n\nGeneral:\n1. Document the deployment process for both frontend and backend\n2. Create a pre-deployment checklist for future deployments\n3. Verify that build and deployment scripts work correctly in a staging environment before production",
+      "testStrategy": "Backend Testing:\n1. Verify health check endpoint returns correct status and information\n2. Test CORS configuration by making requests from allowed and disallowed origins\n3. Attempt to access the application without proper environment variables to ensure it fails safely\n4. Trigger errors and verify stack traces aren't exposed in responses\n5. Review logs to ensure sensitive information isn't being recorded\n\nFrontend Testing:\n1. Build the frontend using production configuration and verify all assets are properly optimized\n2. Inspect the built code to ensure no development tools or debugging code remains\n3. Test the application with different API URL configurations to verify environment variables work\n4. Verify network requests in browser dev tools to ensure all API calls use the configured base URL\n\nIntegration Testing:\n1. Deploy both applications to a staging environment that mirrors production\n2. Perform end-to-end testing of critical user flows\n3. Verify that frontend can successfully communicate with backend using production configuration\n4. Test application behavior when backend services are unavailable\n\nSecurity Verification:\n1. Run security scanning tools on both codebases\n2. Verify all environment variables are properly set and not committed to source control\n3. Check for any hardcoded credentials or sensitive information",
+      "status": "done",
+      "dependencies": [
+        15
+      ],
+      "priority": "high",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Backend Security and Environment Configuration",
+          "description": "Configure backend security measures and environment-based configuration to ensure the application is secure and properly configured for production deployment.",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Create a `.env.example` file documenting all required environment variables\n2. Refactor code to use environment variables for all sensitive data (DB credentials, API keys, JWT secrets)\n3. Implement a configuration module that loads different settings based on NODE_ENV\n4. Configure CORS middleware to only allow requests from approved origins (stored in environment variables)\n5. Implement error handling middleware that sanitizes error responses in production mode\n6. Set up rate limiting for authentication endpoints using a library like express-rate-limit\n7. Test all security measures with appropriate tests\n\nTesting approach:\n- Create unit tests for configuration loading with different NODE_ENV values\n- Test CORS with requests from allowed and disallowed origins\n- Verify rate limiting by sending multiple requests\n- Ensure error responses don't contain stack traces in production mode\n\n<info added on 2025-04-28T15:07:45.410Z>\n## Enhanced Implementation Details\n\n### Environment Configuration Setup\n```typescript\n// app.module.ts\nimport { ConfigModule } from '@nestjs/config';\n\n@Module({\n  imports: [\n    ConfigModule.forRoot({\n      isGlobal: true,\n      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,\n      validationSchema: Joi.object({\n        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),\n        PORT: Joi.number().default(3000),\n        DATABASE_URL: Joi.string().required(),\n        JWT_SECRET: Joi.string().required(),\n        JWT_EXPIRATION: Joi.string().default('1d'),\n        CORS_ORIGIN_DEV: Joi.string().default('http://localhost:5173'),\n        CORS_ORIGIN_PROD: Joi.string().required(),\n      }),\n    }),\n    // other modules...\n  ],\n})\nexport class AppModule {}\n```\n\n### CORS Configuration Implementation\n```typescript\n// main.ts\nasync function bootstrap() {\n  const app = await NestFactory.create(AppModule);\n  const configService = app.get(ConfigService);\n  \n  // CORS configuration based on environment\n  const corsOrigin = configService.get('NODE_ENV') === 'production' \n    ? configService.get('CORS_ORIGIN_PROD')\n    : configService.get('CORS_ORIGIN_DEV');\n    \n  app.enableCors({\n    origin: corsOrigin,\n    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],\n    credentials: true,\n  });\n  \n  // rest of bootstrap code...\n}\n```\n\n### Custom Exception Filter for Production\n```typescript\n// filters/http-exception.filter.ts\n@Catch(HttpException)\nexport class HttpExceptionFilter implements ExceptionFilter {\n  constructor(private configService: ConfigService) {}\n\n  catch(exception: HttpException, host: ArgumentsHost) {\n    const ctx = host.switchToHttp();\n    const response = ctx.getResponse<Response>();\n    const status = exception.getStatus();\n    const exceptionResponse = exception.getResponse();\n    \n    const isProd = this.configService.get('NODE_ENV') === 'production';\n    \n    const errorResponse = isProd ? {\n      statusCode: status,\n      message: typeof exceptionResponse === 'object' && 'message' in exceptionResponse\n        ? exceptionResponse.message\n        : 'Internal server error',\n    } : exceptionResponse;\n    \n    response.status(status).json(errorResponse);\n  }\n}\n```\n\n### Rate Limiting Implementation\n```typescript\n// auth/auth.controller.ts\nimport { RateLimit } from 'nestjs-rate-limiter';\n\n@Controller('auth')\nexport class AuthController {\n  // Apply stricter rate limiting to authentication endpoints\n  @RateLimit({ \n    points: 5,\n    duration: 60,\n    errorMessage: 'Too many login attempts, please try again later'\n  })\n  @Post('login')\n  async login(@Body() loginDto: LoginDto) {\n    // login implementation\n  }\n  \n  @RateLimit({\n    points: 3,\n    duration: 60 * 15, // 15 minutes\n    errorMessage: 'Too many registration attempts, please try again later'\n  })\n  @Post('register')\n  async register(@Body() registerDto: RegisterDto) {\n    // register implementation\n  }\n}\n```\n\n### Security Testing Example\n```typescript\n// test/security.e2e-spec.ts\ndescribe('Security Features', () => {\n  it('should reject requests from unauthorized origins', async () => {\n    const response = await request(app.getHttpServer())\n      .get('/some-endpoint')\n      .set('Origin', 'https://malicious-site.com');\n      \n    expect(response.status).toBe(403);\n  });\n  \n  it('should rate limit authentication endpoints', async () => {\n    // Make 6 consecutive requests to trigger rate limiting\n    for (let i = 0; i < 5; i++) {\n      await request(app.getHttpServer())\n        .post('/auth/login')\n        .send({ email: 'test@example.com', password: 'password' });\n    }\n    \n    const response = await request(app.getHttpServer())\n      .post('/auth/login')\n      .send({ email: 'test@example.com', password: 'password' });\n      \n    expect(response.status).toBe(429); // Too Many Requests\n  });\n});\n```\n</info added on 2025-04-28T15:07:45.410Z>",
+          "status": "done",
+          "parentTaskId": 16
+        },
+        {
+          "id": 2,
+          "title": "Implement Backend Health Check and Production Logging",
+          "description": "Add a health check endpoint and configure production-appropriate logging to ensure the backend can be monitored effectively in production.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Create a health check endpoint at `/api/health` that returns HTTP 200 and basic system status\n2. Include database connection status in the health check\n3. Configure a production-appropriate logging system (like Winston or Pino)\n4. Ensure logs don't contain sensitive information\n5. Create different log levels for development vs. production\n6. Add request logging middleware with appropriate redaction of sensitive data\n7. Implement log rotation for production logs\n\nTesting approach:\n- Test health check endpoint returns correct status codes for healthy and unhealthy states\n- Verify logs don't contain sensitive information like passwords or tokens\n- Test log rotation functionality\n- Ensure health check endpoint is accessible without authentication\n\n<info added on 2025-04-28T15:34:02.676Z>\n## Additional Implementation Details\n\n### Health Check Implementation\n```typescript\n// health.module.ts\nimport { Module } from '@nestjs/common';\nimport { TerminusModule } from '@nestjs/terminus';\nimport { HealthController } from './health.controller';\nimport { PrismaModule } from '../../prisma/prisma.module';\n\n@Module({\n  imports: [TerminusModule, PrismaModule],\n  controllers: [HealthController],\n})\nexport class HealthModule {}\n\n// health.controller.ts\nimport { Controller, Get } from '@nestjs/common';\nimport { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';\nimport { PrismaService } from '../../prisma/prisma.service';\nimport { Public } from '../auth/decorators/public.decorator';\n\n@Controller()\nexport class HealthController {\n  constructor(\n    private healthCheckService: HealthCheckService,\n    private prismaService: PrismaService,\n    private prismaIndicator: PrismaHealthIndicator,\n  ) {}\n\n  @Public()\n  @Get('api/health')\n  @HealthCheck()\n  check() {\n    return this.healthCheckService.check([\n      async () => this.prismaIndicator.pingCheck('database', { \n        timeout: 3000,\n        prismaService: this.prismaService \n      }),\n      // Add memory health check\n      () => ({ memory: { status: 'up', details: process.memoryUsage() } }),\n    ]);\n  }\n}\n```\n\n### Logging Configuration\n```typescript\n// Create a custom PrismaHealthIndicator if needed\nexport class PrismaHealthIndicator extends HealthIndicator {\n  constructor() {\n    super();\n  }\n\n  async pingCheck(key: string, options: { prismaService: PrismaService; timeout?: number }) {\n    try {\n      await options.prismaService.$queryRaw`SELECT 1`;\n      return this.getStatus(key, true);\n    } catch (error) {\n      return this.getStatus(key, false, { message: error.message });\n    }\n  }\n}\n\n// Sensitive data redaction in logger config\nLoggerModule.forRoot({\n  pinoHttp: {\n    // Redact sensitive information\n    redact: [\n      'req.headers.authorization',\n      'req.headers.cookie',\n      'req.body.password',\n      'req.body.token',\n      'res.headers[\"set-cookie\"]'\n    ],\n    // Custom serializers\n    serializers: {\n      req: (req) => ({\n        method: req.method,\n        url: req.url,\n        // Exclude body in production for security\n        ...(process.env.NODE_ENV !== 'production' && { body: req.body }),\n      }),\n    },\n    // Log rotation configuration (via external tool like logrotate)\n    transport: process.env.NODE_ENV === 'production' \n      ? undefined \n      : { target: 'pino-pretty', options: { singleLine: true } },\n  }\n})\n```\n\n### Log Usage Examples\n```typescript\n// In any service or controller\nimport { Injectable, Logger } from '@nestjs/common';\n\n@Injectable()\nexport class SomeService {\n  private readonly logger = new Logger(SomeService.name);\n  \n  async someMethod(data: any) {\n    this.logger.log(`Processing data for ${data.id}`);\n    try {\n      // Some operation\n      this.logger.debug('Operation details', { additionalContext: 'value' });\n    } catch (error) {\n      this.logger.error(`Failed to process data: ${error.message}`, error.stack);\n      throw error;\n    }\n  }\n}\n```\n\n### Log Rotation Setup\nFor production environments, add a `logrotate` configuration file:\n\n```\n/path/to/your/app/logs/*.log {\n  daily\n  rotate 14\n  compress\n  delaycompress\n  missingok\n  notifempty\n  create 0640 node node\n  sharedscripts\n  postrotate\n    systemctl reload your-service > /dev/null 2>&1 || true\n  endscript\n}\n```\n</info added on 2025-04-28T15:34:02.676Z>\n\n<info added on 2025-04-28T16:00:42.781Z>\n## Detailed Implementation Plan for Health Check and Production Logging\n\n### 1. Dependencies and Setup\n```bash\n# Install required packages\nnpm install --save @nestjs/terminus @godaddy/terminus terminus-nest-bootstrap winston nest-winston\n# Create directories\nmkdir -p src/core/logging src/features/health logs\n```\n\n### 2. Custom PrismaHealthIndicator Implementation\n```typescript\n// src/features/health/prisma.health.ts\nimport { Injectable } from '@nestjs/common';\nimport { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';\nimport { PrismaService } from '../../prisma/prisma.service';\n\n@Injectable()\nexport class PrismaHealthIndicator extends HealthIndicator {\n  constructor(private readonly prismaService: PrismaService) {\n    super();\n  }\n\n  async isHealthy(key: string): Promise<HealthIndicatorResult> {\n    try {\n      await this.prismaService.$queryRaw`SELECT 1`;\n      return this.getStatus(key, true);\n    } catch (error) {\n      throw new HealthCheckError(\n        'Prisma health check failed',\n        this.getStatus(key, false, { message: error.message }),\n      );\n    }\n  }\n}\n```\n\n### 3. Winston Configuration\n```typescript\n// src/core/logging/winston.config.ts\nimport { utilities as nestWinstonModuleUtilities } from 'nest-winston';\nimport * as winston from 'winston';\nimport 'winston-daily-rotate-file';\n\nconst sensitiveFields = ['password', 'token', 'authorization', 'cookie'];\n\n// Custom formatter to mask sensitive data\nconst maskSensitiveData = winston.format((info) => {\n  if (info.message) {\n    sensitiveFields.forEach(field => {\n      const regex = new RegExp(`(${field}['\":]\\\\s*['\"]?)([^'\"\\\\s]+)`, 'gi');\n      info.message = info.message.replace(regex, `$1[REDACTED]`);\n    });\n  }\n  \n  if (info.meta) {\n    const maskObject = (obj) => {\n      const masked = { ...obj };\n      for (const key in masked) {\n        if (sensitiveFields.includes(key.toLowerCase())) {\n          masked[key] = '[REDACTED]';\n        } else if (typeof masked[key] === 'object' && masked[key] !== null) {\n          masked[key] = maskObject(masked[key]);\n        }\n      }\n      return masked;\n    };\n    \n    info.meta = maskObject(info.meta);\n  }\n  \n  return info;\n});\n\nexport const winstonConfig = {\n  transports: [\n    // Console transport with different configurations for dev/prod\n    new winston.transports.Console({\n      level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',\n      format: winston.format.combine(\n        winston.format.timestamp(),\n        maskSensitiveData(),\n        process.env.NODE_ENV === 'production'\n          ? winston.format.json()\n          : nestWinstonModuleUtilities.format.nestLike('NayaraCMS', {\n              prettyPrint: true,\n              colors: true,\n            }),\n      ),\n    }),\n    \n    // File transport for production only\n    ...(process.env.NODE_ENV === 'production'\n      ? [\n          new winston.transports.DailyRotateFile({\n            filename: 'logs/application-%DATE%.log',\n            datePattern: 'YYYY-MM-DD',\n            zippedArchive: true,\n            maxSize: '20m',\n            maxFiles: '14d',\n            format: winston.format.combine(\n              winston.format.timestamp(),\n              maskSensitiveData(),\n              winston.format.json(),\n            ),\n            level: 'info',\n          }),\n          new winston.transports.DailyRotateFile({\n            filename: 'logs/error-%DATE%.log',\n            datePattern: 'YYYY-MM-DD',\n            zippedArchive: true,\n            maxSize: '20m',\n            maxFiles: '14d',\n            format: winston.format.combine(\n              winston.format.timestamp(),\n              maskSensitiveData(),\n              winston.format.json(),\n            ),\n            level: 'error',\n          }),\n        ]\n      : []),\n  ],\n};\n```\n\n### 4. Logger Integration in main.ts\n```typescript\n// src/main.ts (partial update)\nimport { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';\n\nasync function bootstrap() {\n  const app = await NestFactory.create(AppModule, {\n    bufferLogs: true,\n  });\n  \n  // Use Winston for application logging\n  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));\n  \n  // ... rest of bootstrap code\n}\n```\n\n### 5. HTTP Exception Filter with Proper Logging\n```typescript\n// src/core/filters/http-exception.filter.ts\nimport { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject } from '@nestjs/common';\nimport { Request, Response } from 'express';\nimport { WINSTON_MODULE_PROVIDER } from 'nest-winston';\nimport { Logger } from 'winston';\n\n@Catch(HttpException)\nexport class HttpExceptionFilter implements ExceptionFilter {\n  constructor(\n    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,\n  ) {}\n\n  catch(exception: HttpException, host: ArgumentsHost) {\n    const ctx = host.switchToHttp();\n    const response = ctx.getResponse<Response>();\n    const request = ctx.getRequest<Request>();\n    const status = exception.getStatus();\n    const exceptionResponse = exception.getResponse();\n    \n    // Log with appropriate level based on status code\n    const logMethod = status >= 500 ? 'error' : 'warn';\n    this.logger[logMethod](`HTTP Exception: ${status}`, {\n      path: request.url,\n      method: request.method,\n      error: exceptionResponse,\n      ...(process.env.NODE_ENV !== 'production' && { stack: exception.stack }),\n    });\n\n    // Customize response based on environment\n    const responseBody = process.env.NODE_ENV === 'production' && status >= 500\n      ? { statusCode: status, message: 'Internal server error' }\n      : exceptionResponse;\n\n    response.status(status).json(responseBody);\n  }\n}\n```\n\n### 6. Systemd Service Configuration for Production\n```ini\n# /etc/systemd/system/nayara-cms-api.service\n[Unit]\nDescription=Nayara CMS API\nAfter=network.target\n\n[Service]\nUser=node\nWorkingDirectory=/path/to/nayara-cms-backend\nExecStart=/usr/bin/node dist/main.js\nRestart=always\nRestartSec=10\nStandardOutput=syslog\nStandardError=syslog\nSyslogIdentifier=nayara-cms-api\nEnvironment=NODE_ENV=production\n\n[Install]\nWantedBy=multi-user.target\n```\n\n### 7. Testing Scripts for Health Check\n```typescript\n// test/health.e2e-spec.ts\nimport { Test, TestingModule } from '@nestjs/testing';\nimport { INestApplication } from '@nestjs/common';\nimport * as request from 'supertest';\nimport { AppModule } from '../src/app.module';\nimport { PrismaService } from '../src/prisma/prisma.service';\n\ndescribe('Health Check (e2e)', () => {\n  let app: INestApplication;\n  let prismaService: PrismaService;\n\n  beforeEach(async () => {\n    const moduleFixture: TestingModule = await Test.createTestingModule({\n      imports: [AppModule],\n    }).compile();\n\n    app = moduleFixture.createNestApplication();\n    prismaService = moduleFixture.get<PrismaService>(PrismaService);\n    await app.init();\n  });\n\n  it('/api/health (GET) - healthy system', () => {\n    return request(app.getHttpServer())\n      .get('/api/health')\n      .expect(200)\n      .expect((res) => {\n        expect(res.body.status).toEqual('ok');\n        expect(res.body.info.database.status).toEqual('up');\n      });\n  });\n\n  it('/api/health (GET) - unhealthy database', async () => {\n    // Mock database failure\n    jest.spyOn(prismaService, '$queryRaw').mockRejectedValueOnce(new Error('DB connection failed'));\n\n    return request(app.getHttpServer())\n      .get('/api/health')\n      .expect(503)\n      .expect((res) => {\n        expect(res.body.status).toEqual('error');\n        expect(res.body.error.database.status).toEqual('down');\n      });\n  });\n\n  afterEach(async () => {\n    await app.close();\n  });\n});\n```\n</info added on 2025-04-28T16:00:42.781Z>",
+          "status": "done",
+          "parentTaskId": 16
+        },
+        {
+          "id": 3,
+          "title": "Configure Frontend Environment Settings and API Integration",
+          "description": "Update the frontend codebase to use environment-specific configuration and ensure all API calls use the configured base URL.",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Create environment configuration files (.env.development, .env.production)\n2. Implement a configuration module that loads environment-specific settings\n3. Update API URL configuration to use environment variables\n4. Create a centralized API client that uses the configured base URL\n5. Refactor all API calls to use this client instead of hardcoded URLs\n6. Add environment indicator for non-production environments\n7. Test API integration with different environment configurations\n\nTesting approach:\n- Verify the application loads correct configuration based on environment\n- Test API calls work correctly with different base URLs\n- Ensure no hardcoded API URLs remain in the codebase\n- Test environment indicator appears only in non-production environments",
+          "status": "done",
+          "parentTaskId": 16
+        },
+        {
+          "id": 4,
+          "title": "Optimize Frontend Build Process for Production",
+          "description": "Configure the frontend build process to produce optimized assets and remove development-only code from production builds.",
+          "dependencies": [
+            3
+          ],
+          "details": "Implementation steps:\n1. Configure build scripts to enable full optimization (minification, tree-shaking)\n2. Implement code splitting for better load performance\n3. Set up conditional imports to exclude development-only code from production builds\n4. Configure source map generation appropriate for production\n5. Implement asset optimization (image compression, CSS minification)\n6. Add bundle analyzer to monitor bundle size\n7. Remove console.log statements and debugging tools from production builds\n\nTesting approach:\n- Compare bundle sizes before and after optimization\n- Verify development tools are not included in production builds\n- Test application performance with production builds\n- Ensure source maps work correctly for error tracking",
+          "status": "done",
+          "parentTaskId": 16
+        },
+        {
+          "id": 5,
+          "title": "Create Deployment Documentation and Verification Process",
+          "description": "Document the deployment process and create a pre-deployment checklist to ensure consistent and reliable deployments.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Implementation steps:\n1. Create comprehensive deployment documentation for both frontend and backend\n2. Develop a pre-deployment checklist covering all necessary verification steps\n3. Document required environment variables and their purpose\n4. Create scripts to verify deployment readiness (environment variables, build process)\n5. Document rollback procedures in case of deployment issues\n6. Set up a staging environment that mirrors production\n7. Create a deployment verification test suite to run post-deployment\n8. Document monitoring and alerting setup for production\n\nTesting approach:\n- Perform a complete test deployment to staging following the documentation\n- Verify all checklist items can be completed successfully\n- Test rollback procedures in staging environment\n- Have another team member follow the documentation to verify clarity and completeness",
+          "status": "done",
+          "parentTaskId": 16
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Deploy Backend Infrastructure to Railway",
+      "description": "Set up and deploy the NestJS backend, PostgreSQL database, and storage volume to Railway cloud platform using Railway CLI and web interface.",
+      "details": "This task involves deploying our application infrastructure to Railway cloud platform. Follow these steps:\n\n1. Install Railway CLI: `npm install -g @railway/cli`\n\n2. Login to Railway: `railway login`\n\n3. Initialize a new Railway project: `railway init`\n\n4. Set up PostgreSQL service:\n   - Add a PostgreSQL service: `railway add`\n   - Select PostgreSQL from the options\n   - Note the connection string for later use\n\n5. Deploy NestJS backend:\n   - Navigate to the backend directory\n   - Link to Railway project: `railway link`\n   - Configure environment variables:\n     - DATABASE_URL (from PostgreSQL service)\n     - JWT_SECRET\n     - Other required environment variables\n   - Deploy the service: `railway up`\n\n6. Set up persistent storage volume:\n   - Create a volume via Railway dashboard\n   - Attach the volume to the NestJS service\n   - Configure the mount path in service settings\n\n7. Configure domain and HTTPS:\n   - Generate a custom domain in Railway dashboard\n   - Ensure HTTPS is enabled\n\n8. Set up continuous deployment:\n   - Connect Railway to the GitHub repository\n   - Configure automatic deployments for the main branch\n\n9. Monitor the deployment and check logs for any issues\n\n10. Document all service URLs, connection strings, and configuration details in the project documentation.",
+      "testStrategy": "Verify the deployment with the following tests:\n\n1. API Endpoint Testing:\n   - Use Postman or curl to test key API endpoints\n   - Verify that all endpoints return expected responses\n   - Test authentication flows with JWT tokens\n\n2. Database Connection:\n   - Confirm the backend can connect to PostgreSQL\n   - Run a simple query to verify data persistence\n   - Test database migrations if applicable\n\n3. Storage Volume:\n   - Upload a test file to verify storage functionality\n   - Confirm the file persists after service restarts\n\n4. Environment Variables:\n   - Verify all environment variables are correctly set\n   - Test that sensitive information is properly secured\n\n5. Performance Check:\n   - Measure response times for critical endpoints\n   - Ensure they meet performance requirements\n\n6. Error Handling:\n   - Intentionally trigger errors to verify proper error responses\n   - Check that errors are properly logged\n\n7. Continuous Deployment:\n   - Make a small change to the codebase\n   - Push to the main branch\n   - Verify automatic deployment occurs\n\n8. Documentation:\n   - Ensure all deployment details are documented\n   - Include troubleshooting steps for common issues",
+      "status": "pending",
+      "dependencies": [
+        16
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 18,
+      "title": "Deploy React Frontend to Vercel",
+      "description": "Configure and deploy the React frontend application to Vercel, ensuring proper connection to the production backend API.",
+      "details": "This task involves deploying the React frontend to Vercel's hosting platform. The developer should:\n\n1. Install the Vercel CLI globally using npm: `npm install -g vercel`\n2. Navigate to the frontend project directory\n3. Login to Vercel via the CLI: `vercel login`\n4. Initialize the Vercel project: `vercel init`\n5. Link the local project to the Vercel project: `vercel link`\n6. Configure environment variables in the Vercel project settings:\n   - Set `REACT_APP_API_URL` (or equivalent) to point to the production backend URL\n   - Ensure any other required environment variables are set\n7. Deploy the project to production: `vercel --prod`\n8. Note the deployment URL provided by Vercel\n9. Update any necessary documentation with the new frontend URL\n10. If using a custom domain, configure it in the Vercel dashboard\n11. Ensure proper CORS settings are configured on the backend to allow requests from the Vercel domain",
+      "testStrategy": "To verify successful deployment:\n\n1. Visit the deployed Vercel URL and confirm the application loads correctly\n2. Test all major functionality to ensure it works with the production backend:\n   - User authentication (login/signup)\n   - Data fetching from the backend API\n   - Form submissions and data persistence\n3. Test on multiple browsers (Chrome, Firefox, Safari) to ensure cross-browser compatibility\n4. Test on mobile devices to verify responsive design\n5. Check network requests in browser developer tools to confirm they're hitting the correct production API endpoints\n6. Verify that environment variables are correctly applied by examining network requests\n7. Run Lighthouse or similar performance tests on the deployed site\n8. Check for any console errors that might indicate configuration issues\n9. Verify that the deployment is using HTTPS\n10. Have another team member independently verify the deployment works from a different network/location",
+      "status": "pending",
+      "dependencies": [
+        16,
+        17
+      ],
+      "priority": "high"
+    },
+    {
+      "id": 19,
+      "title": "Configure Custom Domains for Deployed Services",
+      "description": "Set up custom domains for the deployed backend (Railway) and frontend (Vercel) services to provide a professional and branded user experience.",
+      "details": "This task involves configuring custom domains for both the backend and frontend services:\n\n**Backend (Railway) Configuration:**\n1. Access the Railway dashboard and navigate to the deployed backend project\n2. Go to the 'Settings' or 'Domains' section\n3. Add the desired custom domain (e.g., api.yourapp.com)\n4. Note the provided DNS records that need to be configured (typically a CNAME record)\n5. Configure SSL/TLS certificates for the domain\n\n**Frontend (Vercel) Configuration:**\n1. Access the Vercel dashboard and select the deployed frontend project\n2. Navigate to the 'Domains' section\n3. Add the desired custom domain (e.g., yourapp.com or www.yourapp.com)\n4. Note the provided DNS records that need to be configured\n5. Ensure SSL/TLS is properly configured\n\n**DNS Configuration:**\n1. Access your domain registrar or DNS provider's dashboard\n2. Add the required DNS records for both services:\n   - For Railway: Typically a CNAME record pointing to the provided Railway URL\n   - For Vercel: Typically a CNAME record for www subdomain and an A record for the apex domain\n3. Set appropriate TTL values (Time To Live)\n\n**Application Configuration:**\n1. Update any hardcoded URLs in the application to use the new custom domains\n2. Update CORS settings in the backend to allow requests from the new frontend domain\n3. Update environment variables in both services if necessary\n\nNote: DNS propagation may take up to 48 hours, though it's often much faster.",
+      "testStrategy": "**Testing Strategy:**\n\n1. **DNS Propagation Verification:**\n   - Use tools like `dig`, `nslookup`, or online DNS lookup services to verify DNS records are correctly configured\n   - Check that the records point to the correct Railway and Vercel servers\n\n2. **Domain Accessibility Testing:**\n   - Verify that both domains (frontend and backend) are accessible via web browsers\n   - Ensure that HTTPS is working correctly with valid SSL certificates (check for the lock icon in browsers)\n   - Test both www and non-www versions of the domain if applicable\n\n3. **API Functionality Testing:**\n   - Test API endpoints using the new custom domain\n   - Verify that API requests from the frontend to the backend work correctly\n   - Test with tools like Postman or curl to ensure the backend responds properly\n\n4. **Cross-Origin Testing:**\n   - Verify that CORS is properly configured by making requests from the frontend to the backend\n   - Check browser console for any CORS-related errors\n\n5. **Environment Variable Verification:**\n   - Verify that all environment variables referencing domains have been updated\n   - Test any features that rely on absolute URLs\n\n6. **Browser Compatibility:**\n   - Test the custom domains on different browsers (Chrome, Firefox, Safari, Edge)\n   - Test on both desktop and mobile devices\n\n7. **Performance Check:**\n   - Run a basic performance test to ensure the domain configuration doesn't introduce latency\n   - Use tools like Lighthouse or PageSpeed Insights to verify performance",
+      "status": "pending",
+      "dependencies": [
+        17,
+        18
+      ],
+      "priority": "low"
+    },
+    {
+      "id": 20,
+      "title": "Document Deployment Process in deployment.md",
+      "description": "Create comprehensive documentation of the entire deployment process in a new memory-bank/deployment.md file, covering all platforms, commands, configurations, and step sequences.",
+      "details": "Create a new file at memory-bank/deployment.md that thoroughly documents the entire deployment process. The documentation should include:\n\n1. **Platform Overview**:\n   - Description of Railway (backend) and Vercel (frontend) platforms\n   - Rationale for platform selection\n   - Account setup instructions\n\n2. **Backend Deployment (Railway)**:\n   - CLI commands used for deployment\n   - Project setup and configuration steps\n   - Environment variable configuration\n   - Database setup and migration process\n   - Monitoring and logging setup\n\n3. **Frontend Deployment (Vercel)**:\n   - Build process and commands\n   - Project configuration details\n   - Environment variable setup\n   - Integration with the backend\n\n4. **Domain Configuration**:\n   - Custom domain setup for both platforms\n   - DNS configuration steps\n   - SSL/TLS certificate setup\n\n5. **Deployment Sequence**:\n   - Step-by-step deployment workflow\n   - Order of operations\n   - Dependencies between deployment steps\n\n6. **Troubleshooting**:\n   - Common issues and their solutions\n   - Debugging techniques\n\n7. **Maintenance Procedures**:\n   - Update/upgrade process\n   - Backup procedures\n\nUse Markdown formatting with clear headings, code blocks for commands, and tables where appropriate. Include screenshots of critical configuration screens if helpful.",
+      "testStrategy": "To verify this task has been completed correctly:\n\n1. **Document Existence and Location**:\n   - Confirm the deployment.md file exists in the memory-bank directory\n   - Verify the file uses proper Markdown syntax and formatting\n\n2. **Content Completeness**:\n   - Check that all seven sections listed in the details are present and comprehensive\n   - Verify all CLI commands are accurate by testing a sample of them\n   - Ensure environment variable documentation is complete but does not expose sensitive information\n\n3. **Accuracy Verification**:\n   - Have another team member follow the documentation to perform a test deployment to staging environments\n   - Identify and correct any steps that are unclear or missing\n\n4. **Cross-Reference**:\n   - Compare the documentation against the actual deployed systems to ensure alignment\n   - Verify that any platform-specific details match current platform versions\n\n5. **Readability Assessment**:\n   - Have a team member unfamiliar with the deployment process review the document for clarity\n   - Ensure technical terms are explained or linked to relevant resources",
+      "status": "pending",
+      "dependencies": [
+        17,
+        18,
+        19
+      ],
+      "priority": "medium"
+    }
+  ],
+  "metadata": {
+    "projectName": "Nayara CMS Implementation",
+    "totalTasks": 15,
+    "sourceFile": "C:\\Users\\jovy2\\Documents\\VTF\\birding content\\scripts\\prd.txt",
+    "generatedAt": "2023-11-17"
+  }
+}

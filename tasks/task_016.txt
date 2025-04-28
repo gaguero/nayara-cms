@@ -1,0 +1,683 @@
+# Task ID: 16
+# Title: Prepare Frontend and Backend for Production Deployment
+# Status: done
+# Dependencies: 15
+# Priority: high
+# Description: Configure both frontend and backend codebases for production deployment with proper security measures, environment configuration, and deployment readiness checks.
+# Details:
+This task involves preparing both codebases for production deployment:
+
+Backend:
+1. Implement a health check endpoint at `/health` or `/api/health` that returns HTTP 200 and basic system status
+2. Configure CORS to only allow requests from approved origins (production domain and potentially staging)
+3. Ensure all sensitive data (DB credentials, API keys, JWT secrets) use environment variables
+4. Verify error handling doesn't expose sensitive stack traces in production
+5. Set up proper logging that's appropriate for production (no sensitive data)
+6. Ensure rate limiting is configured for authentication endpoints
+
+Frontend:
+1. Update API URL configuration to use environment variables
+2. Verify build scripts produce optimized assets (minification, tree-shaking)
+3. Implement environment-specific configuration for development vs production
+4. Remove any development-only code or debugging tools from production builds
+5. Ensure all API calls use the configured base URL rather than hardcoded values
+
+General:
+1. Document the deployment process for both frontend and backend
+2. Create a pre-deployment checklist for future deployments
+3. Verify that build and deployment scripts work correctly in a staging environment before production
+
+# Test Strategy:
+Backend Testing:
+1. Verify health check endpoint returns correct status and information
+2. Test CORS configuration by making requests from allowed and disallowed origins
+3. Attempt to access the application without proper environment variables to ensure it fails safely
+4. Trigger errors and verify stack traces aren't exposed in responses
+5. Review logs to ensure sensitive information isn't being recorded
+
+Frontend Testing:
+1. Build the frontend using production configuration and verify all assets are properly optimized
+2. Inspect the built code to ensure no development tools or debugging code remains
+3. Test the application with different API URL configurations to verify environment variables work
+4. Verify network requests in browser dev tools to ensure all API calls use the configured base URL
+
+Integration Testing:
+1. Deploy both applications to a staging environment that mirrors production
+2. Perform end-to-end testing of critical user flows
+3. Verify that frontend can successfully communicate with backend using production configuration
+4. Test application behavior when backend services are unavailable
+
+Security Verification:
+1. Run security scanning tools on both codebases
+2. Verify all environment variables are properly set and not committed to source control
+3. Check for any hardcoded credentials or sensitive information
+
+# Subtasks:
+## 1. Implement Backend Security and Environment Configuration [done]
+### Dependencies: None
+### Description: Configure backend security measures and environment-based configuration to ensure the application is secure and properly configured for production deployment.
+### Details:
+Implementation steps:
+1. Create a `.env.example` file documenting all required environment variables
+2. Refactor code to use environment variables for all sensitive data (DB credentials, API keys, JWT secrets)
+3. Implement a configuration module that loads different settings based on NODE_ENV
+4. Configure CORS middleware to only allow requests from approved origins (stored in environment variables)
+5. Implement error handling middleware that sanitizes error responses in production mode
+6. Set up rate limiting for authentication endpoints using a library like express-rate-limit
+7. Test all security measures with appropriate tests
+
+Testing approach:
+- Create unit tests for configuration loading with different NODE_ENV values
+- Test CORS with requests from allowed and disallowed origins
+- Verify rate limiting by sending multiple requests
+- Ensure error responses don't contain stack traces in production mode
+
+<info added on 2025-04-28T15:07:45.410Z>
+## Enhanced Implementation Details
+
+### Environment Configuration Setup
+```typescript
+// app.module.ts
+import { ConfigModule } from '@nestjs/config';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        PORT: Joi.number().default(3000),
+        DATABASE_URL: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION: Joi.string().default('1d'),
+        CORS_ORIGIN_DEV: Joi.string().default('http://localhost:5173'),
+        CORS_ORIGIN_PROD: Joi.string().required(),
+      }),
+    }),
+    // other modules...
+  ],
+})
+export class AppModule {}
+```
+
+### CORS Configuration Implementation
+```typescript
+// main.ts
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  
+  // CORS configuration based on environment
+  const corsOrigin = configService.get('NODE_ENV') === 'production' 
+    ? configService.get('CORS_ORIGIN_PROD')
+    : configService.get('CORS_ORIGIN_DEV');
+    
+  app.enableCors({
+    origin: corsOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  });
+  
+  // rest of bootstrap code...
+}
+```
+
+### Custom Exception Filter for Production
+```typescript
+// filters/http-exception.filter.ts
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(private configService: ConfigService) {}
+
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const status = exception.getStatus();
+    const exceptionResponse = exception.getResponse();
+    
+    const isProd = this.configService.get('NODE_ENV') === 'production';
+    
+    const errorResponse = isProd ? {
+      statusCode: status,
+      message: typeof exceptionResponse === 'object' && 'message' in exceptionResponse
+        ? exceptionResponse.message
+        : 'Internal server error',
+    } : exceptionResponse;
+    
+    response.status(status).json(errorResponse);
+  }
+}
+```
+
+### Rate Limiting Implementation
+```typescript
+// auth/auth.controller.ts
+import { RateLimit } from 'nestjs-rate-limiter';
+
+@Controller('auth')
+export class AuthController {
+  // Apply stricter rate limiting to authentication endpoints
+  @RateLimit({ 
+    points: 5,
+    duration: 60,
+    errorMessage: 'Too many login attempts, please try again later'
+  })
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    // login implementation
+  }
+  
+  @RateLimit({
+    points: 3,
+    duration: 60 * 15, // 15 minutes
+    errorMessage: 'Too many registration attempts, please try again later'
+  })
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    // register implementation
+  }
+}
+```
+
+### Security Testing Example
+```typescript
+// test/security.e2e-spec.ts
+describe('Security Features', () => {
+  it('should reject requests from unauthorized origins', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/some-endpoint')
+      .set('Origin', 'https://malicious-site.com');
+      
+    expect(response.status).toBe(403);
+  });
+  
+  it('should rate limit authentication endpoints', async () => {
+    // Make 6 consecutive requests to trigger rate limiting
+    for (let i = 0; i < 5; i++) {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: 'test@example.com', password: 'password' });
+    }
+    
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'test@example.com', password: 'password' });
+      
+    expect(response.status).toBe(429); // Too Many Requests
+  });
+});
+```
+</info added on 2025-04-28T15:07:45.410Z>
+
+## 2. Implement Backend Health Check and Production Logging [done]
+### Dependencies: 16.1
+### Description: Add a health check endpoint and configure production-appropriate logging to ensure the backend can be monitored effectively in production.
+### Details:
+Implementation steps:
+1. Create a health check endpoint at `/api/health` that returns HTTP 200 and basic system status
+2. Include database connection status in the health check
+3. Configure a production-appropriate logging system (like Winston or Pino)
+4. Ensure logs don't contain sensitive information
+5. Create different log levels for development vs. production
+6. Add request logging middleware with appropriate redaction of sensitive data
+7. Implement log rotation for production logs
+
+Testing approach:
+- Test health check endpoint returns correct status codes for healthy and unhealthy states
+- Verify logs don't contain sensitive information like passwords or tokens
+- Test log rotation functionality
+- Ensure health check endpoint is accessible without authentication
+
+<info added on 2025-04-28T15:34:02.676Z>
+## Additional Implementation Details
+
+### Health Check Implementation
+```typescript
+// health.module.ts
+import { Module } from '@nestjs/common';
+import { TerminusModule } from '@nestjs/terminus';
+import { HealthController } from './health.controller';
+import { PrismaModule } from '../../prisma/prisma.module';
+
+@Module({
+  imports: [TerminusModule, PrismaModule],
+  controllers: [HealthController],
+})
+export class HealthModule {}
+
+// health.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Public } from '../auth/decorators/public.decorator';
+
+@Controller()
+export class HealthController {
+  constructor(
+    private healthCheckService: HealthCheckService,
+    private prismaService: PrismaService,
+    private prismaIndicator: PrismaHealthIndicator,
+  ) {}
+
+  @Public()
+  @Get('api/health')
+  @HealthCheck()
+  check() {
+    return this.healthCheckService.check([
+      async () => this.prismaIndicator.pingCheck('database', { 
+        timeout: 3000,
+        prismaService: this.prismaService 
+      }),
+      // Add memory health check
+      () => ({ memory: { status: 'up', details: process.memoryUsage() } }),
+    ]);
+  }
+}
+```
+
+### Logging Configuration
+```typescript
+// Create a custom PrismaHealthIndicator if needed
+export class PrismaHealthIndicator extends HealthIndicator {
+  constructor() {
+    super();
+  }
+
+  async pingCheck(key: string, options: { prismaService: PrismaService; timeout?: number }) {
+    try {
+      await options.prismaService.$queryRaw`SELECT 1`;
+      return this.getStatus(key, true);
+    } catch (error) {
+      return this.getStatus(key, false, { message: error.message });
+    }
+  }
+}
+
+// Sensitive data redaction in logger config
+LoggerModule.forRoot({
+  pinoHttp: {
+    // Redact sensitive information
+    redact: [
+      'req.headers.authorization',
+      'req.headers.cookie',
+      'req.body.password',
+      'req.body.token',
+      'res.headers["set-cookie"]'
+    ],
+    // Custom serializers
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        url: req.url,
+        // Exclude body in production for security
+        ...(process.env.NODE_ENV !== 'production' && { body: req.body }),
+      }),
+    },
+    // Log rotation configuration (via external tool like logrotate)
+    transport: process.env.NODE_ENV === 'production' 
+      ? undefined 
+      : { target: 'pino-pretty', options: { singleLine: true } },
+  }
+})
+```
+
+### Log Usage Examples
+```typescript
+// In any service or controller
+import { Injectable, Logger } from '@nestjs/common';
+
+@Injectable()
+export class SomeService {
+  private readonly logger = new Logger(SomeService.name);
+  
+  async someMethod(data: any) {
+    this.logger.log(`Processing data for ${data.id}`);
+    try {
+      // Some operation
+      this.logger.debug('Operation details', { additionalContext: 'value' });
+    } catch (error) {
+      this.logger.error(`Failed to process data: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+}
+```
+
+### Log Rotation Setup
+For production environments, add a `logrotate` configuration file:
+
+```
+/path/to/your/app/logs/*.log {
+  daily
+  rotate 14
+  compress
+  delaycompress
+  missingok
+  notifempty
+  create 0640 node node
+  sharedscripts
+  postrotate
+    systemctl reload your-service > /dev/null 2>&1 || true
+  endscript
+}
+```
+</info added on 2025-04-28T15:34:02.676Z>
+
+<info added on 2025-04-28T16:00:42.781Z>
+## Detailed Implementation Plan for Health Check and Production Logging
+
+### 1. Dependencies and Setup
+```bash
+# Install required packages
+npm install --save @nestjs/terminus @godaddy/terminus terminus-nest-bootstrap winston nest-winston
+# Create directories
+mkdir -p src/core/logging src/features/health logs
+```
+
+### 2. Custom PrismaHealthIndicator Implementation
+```typescript
+// src/features/health/prisma.health.ts
+import { Injectable } from '@nestjs/common';
+import { HealthIndicator, HealthIndicatorResult, HealthCheckError } from '@nestjs/terminus';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class PrismaHealthIndicator extends HealthIndicator {
+  constructor(private readonly prismaService: PrismaService) {
+    super();
+  }
+
+  async isHealthy(key: string): Promise<HealthIndicatorResult> {
+    try {
+      await this.prismaService.$queryRaw`SELECT 1`;
+      return this.getStatus(key, true);
+    } catch (error) {
+      throw new HealthCheckError(
+        'Prisma health check failed',
+        this.getStatus(key, false, { message: error.message }),
+      );
+    }
+  }
+}
+```
+
+### 3. Winston Configuration
+```typescript
+// src/core/logging/winston.config.ts
+import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
+import * as winston from 'winston';
+import 'winston-daily-rotate-file';
+
+const sensitiveFields = ['password', 'token', 'authorization', 'cookie'];
+
+// Custom formatter to mask sensitive data
+const maskSensitiveData = winston.format((info) => {
+  if (info.message) {
+    sensitiveFields.forEach(field => {
+      const regex = new RegExp(`(${field}['":]\\s*['"]?)([^'"\\s]+)`, 'gi');
+      info.message = info.message.replace(regex, `$1[REDACTED]`);
+    });
+  }
+  
+  if (info.meta) {
+    const maskObject = (obj) => {
+      const masked = { ...obj };
+      for (const key in masked) {
+        if (sensitiveFields.includes(key.toLowerCase())) {
+          masked[key] = '[REDACTED]';
+        } else if (typeof masked[key] === 'object' && masked[key] !== null) {
+          masked[key] = maskObject(masked[key]);
+        }
+      }
+      return masked;
+    };
+    
+    info.meta = maskObject(info.meta);
+  }
+  
+  return info;
+});
+
+export const winstonConfig = {
+  transports: [
+    // Console transport with different configurations for dev/prod
+    new winston.transports.Console({
+      level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        maskSensitiveData(),
+        process.env.NODE_ENV === 'production'
+          ? winston.format.json()
+          : nestWinstonModuleUtilities.format.nestLike('NayaraCMS', {
+              prettyPrint: true,
+              colors: true,
+            }),
+      ),
+    }),
+    
+    // File transport for production only
+    ...(process.env.NODE_ENV === 'production'
+      ? [
+          new winston.transports.DailyRotateFile({
+            filename: 'logs/application-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              maskSensitiveData(),
+              winston.format.json(),
+            ),
+            level: 'info',
+          }),
+          new winston.transports.DailyRotateFile({
+            filename: 'logs/error-%DATE%.log',
+            datePattern: 'YYYY-MM-DD',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              maskSensitiveData(),
+              winston.format.json(),
+            ),
+            level: 'error',
+          }),
+        ]
+      : []),
+  ],
+};
+```
+
+### 4. Logger Integration in main.ts
+```typescript
+// src/main.ts (partial update)
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+  
+  // Use Winston for application logging
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  
+  // ... rest of bootstrap code
+}
+```
+
+### 5. HTTP Exception Filter with Proper Logging
+```typescript
+// src/core/filters/http-exception.filter.ts
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Inject } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
+
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilter {
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
+
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const status = exception.getStatus();
+    const exceptionResponse = exception.getResponse();
+    
+    // Log with appropriate level based on status code
+    const logMethod = status >= 500 ? 'error' : 'warn';
+    this.logger[logMethod](`HTTP Exception: ${status}`, {
+      path: request.url,
+      method: request.method,
+      error: exceptionResponse,
+      ...(process.env.NODE_ENV !== 'production' && { stack: exception.stack }),
+    });
+
+    // Customize response based on environment
+    const responseBody = process.env.NODE_ENV === 'production' && status >= 500
+      ? { statusCode: status, message: 'Internal server error' }
+      : exceptionResponse;
+
+    response.status(status).json(responseBody);
+  }
+}
+```
+
+### 6. Systemd Service Configuration for Production
+```ini
+# /etc/systemd/system/nayara-cms-api.service
+[Unit]
+Description=Nayara CMS API
+After=network.target
+
+[Service]
+User=node
+WorkingDirectory=/path/to/nayara-cms-backend
+ExecStart=/usr/bin/node dist/main.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nayara-cms-api
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 7. Testing Scripts for Health Check
+```typescript
+// test/health.e2e-spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
+
+describe('Health Check (e2e)', () => {
+  let app: INestApplication;
+  let prismaService: PrismaService;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    prismaService = moduleFixture.get<PrismaService>(PrismaService);
+    await app.init();
+  });
+
+  it('/api/health (GET) - healthy system', () => {
+    return request(app.getHttpServer())
+      .get('/api/health')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.status).toEqual('ok');
+        expect(res.body.info.database.status).toEqual('up');
+      });
+  });
+
+  it('/api/health (GET) - unhealthy database', async () => {
+    // Mock database failure
+    jest.spyOn(prismaService, '$queryRaw').mockRejectedValueOnce(new Error('DB connection failed'));
+
+    return request(app.getHttpServer())
+      .get('/api/health')
+      .expect(503)
+      .expect((res) => {
+        expect(res.body.status).toEqual('error');
+        expect(res.body.error.database.status).toEqual('down');
+      });
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+});
+```
+</info added on 2025-04-28T16:00:42.781Z>
+
+## 3. Configure Frontend Environment Settings and API Integration [done]
+### Dependencies: None
+### Description: Update the frontend codebase to use environment-specific configuration and ensure all API calls use the configured base URL.
+### Details:
+Implementation steps:
+1. Create environment configuration files (.env.development, .env.production)
+2. Implement a configuration module that loads environment-specific settings
+3. Update API URL configuration to use environment variables
+4. Create a centralized API client that uses the configured base URL
+5. Refactor all API calls to use this client instead of hardcoded URLs
+6. Add environment indicator for non-production environments
+7. Test API integration with different environment configurations
+
+Testing approach:
+- Verify the application loads correct configuration based on environment
+- Test API calls work correctly with different base URLs
+- Ensure no hardcoded API URLs remain in the codebase
+- Test environment indicator appears only in non-production environments
+
+## 4. Optimize Frontend Build Process for Production [done]
+### Dependencies: 16.3
+### Description: Configure the frontend build process to produce optimized assets and remove development-only code from production builds.
+### Details:
+Implementation steps:
+1. Configure build scripts to enable full optimization (minification, tree-shaking)
+2. Implement code splitting for better load performance
+3. Set up conditional imports to exclude development-only code from production builds
+4. Configure source map generation appropriate for production
+5. Implement asset optimization (image compression, CSS minification)
+6. Add bundle analyzer to monitor bundle size
+7. Remove console.log statements and debugging tools from production builds
+
+Testing approach:
+- Compare bundle sizes before and after optimization
+- Verify development tools are not included in production builds
+- Test application performance with production builds
+- Ensure source maps work correctly for error tracking
+
+## 5. Create Deployment Documentation and Verification Process [done]
+### Dependencies: 16.1, 16.2, 16.3, 16.4
+### Description: Document the deployment process and create a pre-deployment checklist to ensure consistent and reliable deployments.
+### Details:
+Implementation steps:
+1. Create comprehensive deployment documentation for both frontend and backend
+2. Develop a pre-deployment checklist covering all necessary verification steps
+3. Document required environment variables and their purpose
+4. Create scripts to verify deployment readiness (environment variables, build process)
+5. Document rollback procedures in case of deployment issues
+6. Set up a staging environment that mirrors production
+7. Create a deployment verification test suite to run post-deployment
+8. Document monitoring and alerting setup for production
+
+Testing approach:
+- Perform a complete test deployment to staging following the documentation
+- Verify all checklist items can be completed successfully
+- Test rollback procedures in staging environment
+- Have another team member follow the documentation to verify clarity and completeness
+

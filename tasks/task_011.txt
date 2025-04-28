@@ -1,0 +1,108 @@
+# Task ID: 11
+# Title: Implement Planning Library Backend
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Create the planning library module in the backend for managing planning documents per campaign.
+# Details:
+1. Create PlanningLibraryModule in src/features/planning-library/
+2. Define PlanningDocument model in Prisma schema with relations to Campaign
+3. Create StorageModule and StorageService for file handling
+4. Create DTOs for document upload, update, and response
+5. Implement PlanningLibraryService with operations for document management
+6. Implement PlanningLibraryController with endpoints for:
+   - GET /api/v1/campaigns/:campaignId/planning-documents (list documents)
+   - POST /api/v1/campaigns/:campaignId/planning-documents (upload document)
+   - GET /api/v1/campaigns/:campaignId/planning-documents/:id (get document)
+   - DELETE /api/v1/campaigns/:campaignId/planning-documents/:id (delete document)
+7. Configure file storage using Railway volume
+8. Run `npx prisma migrate dev` to update the database schema
+
+# Test Strategy:
+Test document upload and retrieval. Verify that documents are correctly stored and associated with campaigns. Test file type validation and size limits. Test error handling for invalid requests.
+
+# Subtasks:
+## 1. Define PlanningDocument model and create database migration [done]
+### Dependencies: None
+### Description: Create the PlanningDocument model in the Prisma schema with proper relations to the Campaign model and generate the migration files.
+### Details:
+1. Open the Prisma schema file (schema.prisma)
+2. Define the PlanningDocument model with fields:
+   - id (UUID)
+   - name (String)
+   - description (String, optional)
+   - fileUrl (String)
+   - fileSize (Int)
+   - fileType (String)
+   - uploadedAt (DateTime)
+   - campaignId (UUID, foreign key)
+3. Define the relation to Campaign model
+4. Add a documents relation field in the Campaign model
+5. Run `npx prisma migrate dev --name add_planning_documents` to create the migration
+6. Verify the migration SQL file is correct
+7. Test by checking the database schema after migration
+
+## 2. Create Storage Module and Service for file handling [done]
+### Dependencies: None
+### Description: Implement a storage module and service to handle file uploads, retrievals, and deletions using Railway volume.
+### Details:
+1. Create src/features/storage/storage.module.ts
+2. Create src/features/storage/storage.service.ts
+3. Implement StorageService with methods:
+   - uploadFile(file: Express.Multer.File): Promise<string> - returns file URL
+   - getFile(fileUrl: string): Promise<Buffer>
+   - deleteFile(fileUrl: string): Promise<void>
+4. Configure the service to use Railway volume for storage
+5. Add proper error handling for file operations
+6. Register the module in app.module.ts
+7. Test the service with mock files to ensure proper file handling
+
+## 3. Create Planning Library Module structure and DTOs [done]
+### Dependencies: 11.1
+### Description: Set up the Planning Library module structure and define the necessary DTOs for document operations.
+### Details:
+1. Create the following files:
+   - src/features/planning-library/planning-library.module.ts
+   - src/features/planning-library/planning-library.service.ts
+   - src/features/planning-library/planning-library.controller.ts
+   - src/features/planning-library/dto/create-planning-document.dto.ts
+   - src/features/planning-library/dto/update-planning-document.dto.ts
+   - src/features/planning-library/dto/planning-document-response.dto.ts
+2. Define CreatePlanningDocumentDto with fields for document metadata
+3. Define UpdatePlanningDocumentDto with optional fields
+4. Define PlanningDocumentResponseDto for API responses
+5. Set up the module structure with proper imports
+6. Test the DTOs with validation pipes to ensure they work correctly
+
+## 4. Implement Planning Library Service [done]
+### Dependencies: 11.1, 11.2, 11.3
+### Description: Implement the service layer for managing planning documents with CRUD operations.
+### Details:
+1. Inject PrismaService and StorageService in PlanningLibraryService
+2. Implement the following methods:
+   - createDocument(campaignId: string, file: Express.Multer.File, data: CreatePlanningDocumentDto): Promise<PlanningDocumentResponseDto>
+   - getDocuments(campaignId: string): Promise<PlanningDocumentResponseDto[]>
+   - getDocumentById(campaignId: string, documentId: string): Promise<PlanningDocumentResponseDto>
+   - deleteDocument(campaignId: string, documentId: string): Promise<void>
+3. Add proper error handling for database operations
+4. Implement transaction handling for operations that modify both database and storage
+5. Add validation to ensure documents belong to the specified campaign
+6. Write unit tests for the service methods using Jest
+
+## 5. Implement Planning Library Controller with API endpoints [done]
+### Dependencies: 11.3, 11.4
+### Description: Create the controller with REST endpoints for document management and integrate with the service layer.
+### Details:
+1. Inject PlanningLibraryService in PlanningLibraryController
+2. Implement the following endpoints:
+   - GET /api/v1/campaigns/:campaignId/planning-documents
+   - POST /api/v1/campaigns/:campaignId/planning-documents (use @UploadedFile() decorator with Multer)
+   - GET /api/v1/campaigns/:campaignId/planning-documents/:id
+   - DELETE /api/v1/campaigns/:campaignId/planning-documents/:id
+3. Add proper request validation using class-validator
+4. Add authentication and authorization guards
+5. Configure Swagger documentation for the endpoints
+6. Add proper error responses and status codes
+7. Test all endpoints using Postman or similar tool
+8. Write e2e tests for the controller endpoints
+

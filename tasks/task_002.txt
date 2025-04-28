@@ -1,0 +1,18 @@
+# Task ID: 2
+# Title: Initialize Backend Project with NestJS and Prisma
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Set up the NestJS backend project, configure TypeScript, and integrate Prisma ORM with PostgreSQL.
+# Details:
+1. Create a new NestJS project: `nest new nayara-cms-backend`
+2. Install Prisma: `npm install prisma @prisma/client`
+3. Initialize Prisma: `npx prisma init`
+4. Configure the database connection in .env (PostgreSQL)
+5. Create a PrismaService in src/core/prisma.service.ts that extends PrismaClient and implements OnModuleInit and OnModuleDestroy
+6. Create the initial Prisma schema in prisma/schema.prisma with User and Campaign models
+7. Set up the basic file structure according to the reference in the PRD
+8. Create a basic AppModule that imports the PrismaService
+
+# Test Strategy:
+Verify that the NestJS application starts without errors. Test the database connection by running a simple Prisma query. Ensure that the PrismaService can be injected into other services.

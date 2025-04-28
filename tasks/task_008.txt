@@ -1,0 +1,117 @@
+# Task ID: 8
+# Title: Implement Routing and Layout Components
+# Status: done
+# Dependencies: 7
+# Priority: high
+# Description: Set up routing with react-router-dom and create the main layout components for the application.
+# Details:
+1. Set up routing using createBrowserRouter in src/routes/index.tsx
+2. Create RootLayout.tsx with all global providers
+3. Implement ProtectedRoute.tsx to check authentication and redirect if needed
+4. Create AppLayout.tsx with the main application shell
+5. Implement Header.tsx with app title/logo, CampaignSelector, and UserNav
+6. Create Sidebar.tsx with navigation links to feature sections
+7. Implement UserNav.tsx with user info and logout option
+8. Define all routes according to the PRD:
+   - Public: /login, /auth/callback
+   - Protected: /dashboard, /content/*, /planning-library/*, /media-library/*, /media-needs, /admin/campaigns, /settings
+
+# Test Strategy:
+Test navigation between routes. Verify that protected routes redirect to login when not authenticated. Test that the active route is highlighted in the sidebar. Verify that the UserNav correctly displays user information and handles logout.
+
+# Subtasks:
+## 1. Set up React Router Configuration [done]
+### Dependencies: None
+### Description: Create the router configuration using createBrowserRouter with public and protected route definitions
+### Details:
+1. Install react-router-dom if not already installed
+2. Create src/routes/index.tsx file
+3. Define route constants for all paths (public and protected)
+4. Set up createBrowserRouter with basic route structure
+5. Define public routes (/login, /auth/callback)
+6. Create placeholder components for each route
+7. Test that basic navigation works between public routes
+8. Export the router for use in the application entry point
+
+## 2. Implement RootLayout and ProtectedRoute Components [done]
+### Dependencies: 8.1
+### Description: Create the root layout with global providers and implement protected route logic
+### Details:
+1. Create src/components/layouts/RootLayout.tsx component
+2. Set up global providers (auth, theme, etc.) in RootLayout
+3. Implement Outlet from react-router for rendering child routes
+4. Create src/components/auth/ProtectedRoute.tsx component
+5. Implement authentication check logic in ProtectedRoute
+6. Add redirect to login if user is not authenticated
+7. Test that unauthenticated users are redirected to login
+8. Test that authenticated users can access protected content
+
+## 3. Create Header Component with Navigation Elements [done]
+### Dependencies: 8.2
+### Description: Implement the Header component with app title/logo, campaign selector, and user navigation
+### Details:
+1. Create src/components/layouts/Header.tsx component
+2. Design and implement the header layout with flexbox/grid
+3. Add app title and logo placeholder
+4. Create a basic CampaignSelector component (dropdown)
+5. Create UserNav.tsx component with user info display
+6. Add logout functionality to UserNav
+7. Style all components according to design guidelines
+8. Test that header renders correctly and user navigation works
+
+## 4. Implement Sidebar Navigation Component [done]
+### Dependencies: 8.2
+### Description: Create the sidebar with navigation links to all feature sections
+### Details:
+1. Create src/components/layouts/Sidebar.tsx component
+2. Design the sidebar layout with navigation links
+3. Implement navigation links to all protected routes
+4. Add active state styling for current route
+5. Make sidebar responsive (collapsible on smaller screens)
+6. Add icons for each navigation item
+7. Style according to design guidelines
+8. Test that navigation links work correctly and active states update
+
+## 5. Assemble AppLayout and Connect All Routes [done]
+### Dependencies: 8.1, 8.2, 8.3, 8.4
+### Description: Create the main application shell and connect all routing components
+### Details:
+1. Create src/components/layouts/AppLayout.tsx
+2. Combine Header and Sidebar components in AppLayout
+3. Add main content area with Outlet for child routes
+4. Update router configuration to use layouts appropriately
+5. Connect protected routes with ProtectedRoute component
+6. Ensure all routes are properly nested under correct layouts
+7. Test complete navigation flow from login to all protected routes
+8. Verify that layouts render correctly on different screen sizes
+
+## 6. Set up React Router Configuration [done]
+### Dependencies: None
+### Description: Create the main router configuration using createBrowserRouter, define public routes, and integrate with main.tsx.
+### Details:
+
+
+## 7. Implement RootLayout and ProtectedRoute Components [done]
+### Dependencies: None
+### Description: Create RootLayout to wrap providers (or just Outlet), and ProtectedRoute component to guard routes based on authentication status.
+### Details:
+
+
+## 8. Implement Header and UserNav Components [done]
+### Dependencies: None
+### Description: Create Header component including App Title, CampaignSelector, and a UserNav dropdown menu.
+### Details:
+
+
+## 9. Implement Sidebar Component [done]
+### Dependencies: None
+### Description: Create Sidebar component with navigation links, icons, and active state highlighting.
+### Details:
+
+
+## 10. Implement AppLayout and Finalize Routing [done]
+### Dependencies: None
+### Description: Create the main AppLayout component combining Header, Sidebar, and Outlet for page content. Update router to use AppLayout.
+### Details:
+
+

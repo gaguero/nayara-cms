@@ -1,0 +1,92 @@
+# Task ID: 10
+# Title: Implement Content Management Backend
+# Status: done
+# Dependencies: 4
+# Priority: medium
+# Description: Create the content management module in the backend with CRUD operations for content items.
+# Details:
+1. Create ContentManagementModule in src/features/content-management/
+2. Define ContentItem model in Prisma schema with relations to Campaign
+3. Create DTOs for content creation, update, and response
+4. Implement ContentManagementService with CRUD operations
+5. Implement ContentManagementController with endpoints for:
+   - GET /api/v1/campaigns/:campaignId/content (list content items)
+   - POST /api/v1/campaigns/:campaignId/content (create content item)
+   - GET /api/v1/campaigns/:campaignId/content/:id (get content item)
+   - PATCH /api/v1/campaigns/:campaignId/content/:id (update content item)
+   - DELETE /api/v1/campaigns/:campaignId/content/:id (delete content item)
+6. Add validation for campaignId and content item data
+7. Run `npx prisma migrate dev` to update the database schema
+
+# Test Strategy:
+Test all CRUD endpoints using Postman or curl. Verify that content items are correctly associated with campaigns. Test validation of input data and proper error handling.
+
+# Subtasks:
+## 1. Define ContentItem model in Prisma schema [done]
+### Dependencies: None
+### Description: Create the ContentItem model in the Prisma schema with appropriate fields and relations to the Campaign model
+### Details:
+1. Open the Prisma schema file (schema.prisma)
+2. Define the ContentItem model with fields like id, title, description, content, contentType, status, createdAt, updatedAt
+3. Add a relation field to connect to the Campaign model (campaignId as a foreign key)
+4. Ensure proper indexing for performance
+5. Test by running `npx prisma db pull` to verify schema validity without applying changes yet
+
+## 2. Create ContentManagementModule structure and DTOs [done]
+### Dependencies: 10.1
+### Description: Set up the module structure and create Data Transfer Objects for content operations
+### Details:
+1. Create directory structure at src/features/content-management/
+2. Create content-management.module.ts file
+3. Create DTOs in a dto/ subfolder:
+   - create-content.dto.ts (with validation decorators)
+   - update-content.dto.ts (with partial validation)
+   - content-response.dto.ts
+4. Create content-management.types.ts for interfaces and types
+5. Test by importing the module in the app.module.ts to verify structure
+
+## 3. Implement ContentManagementService with CRUD operations [done]
+### Dependencies: 10.1, 10.2
+### Description: Create the service layer with methods for creating, reading, updating, and deleting content items
+### Details:
+1. Create content-management.service.ts
+2. Inject PrismaService for database operations
+3. Implement methods:
+   - createContent(campaignId, createContentDto)
+   - getContentItems(campaignId, filters)
+   - getContentById(campaignId, id)
+   - updateContent(campaignId, id, updateContentDto)
+   - deleteContent(campaignId, id)
+4. Add validation to ensure content belongs to specified campaign
+5. Add error handling for not found cases
+6. Write unit tests for the service in content-management.service.spec.ts
+
+## 4. Implement ContentManagementController with API endpoints [done]
+### Dependencies: 10.2, 10.3
+### Description: Create the controller with REST endpoints for content management operations
+### Details:
+1. Create content-management.controller.ts
+2. Inject ContentManagementService
+3. Implement endpoints with proper decorators:
+   - @Get('/campaigns/:campaignId/content')
+   - @Post('/campaigns/:campaignId/content')
+   - @Get('/campaigns/:campaignId/content/:id')
+   - @Patch('/campaigns/:campaignId/content/:id')
+   - @Delete('/campaigns/:campaignId/content/:id')
+4. Add validation pipes for request data
+5. Add proper response status codes and error handling
+6. Document endpoints with Swagger annotations
+7. Write e2e tests for the controller endpoints
+
+## 5. Apply database migration and finalize module integration [done]
+### Dependencies: 10.1, 10.2, 10.3, 10.4
+### Description: Run database migration, register the module, and ensure proper integration with the rest of the application
+### Details:
+1. Run `npx prisma migrate dev --name add_content_management` to create and apply the migration
+2. Update the ContentManagementModule to import and export necessary components
+3. Register the module in the app.module.ts
+4. Add appropriate guards and interceptors for authentication/authorization
+5. Test the complete flow with API requests to all endpoints
+6. Verify database operations are working correctly
+7. Document the API endpoints in the project documentation
+

@@ -1,0 +1,99 @@
+{
+  "blog-1": {
+    "title": "The Ultimate Guide to Bird Photography in Panama: From Sunrise to Sunset",
+    "current_version": 1,
+    "last_updated": "2023-06-15T14:30:00Z",
+    "versions": [
+      {
+        "version": 1,
+        "file": "blog-1-complete.md",
+        "date": "2023-06-15T14:30:00Z",
+        "comment": "Versión inicial"
+      }
+    ],
+    "images": {
+      "current": {
+        "hero": "blog-1/blog-1-hero.png",
+        "section1": "blog-1/blog-1-section1.png"
+      },
+      "history": []
+    }
+  },
+  "blog-2": {
+    "title": " Top 10 Must-See Birds in Bocas del Toro: A Spotter's Guide",
+    "current_version": 1,
+    "last_updated": "2023-06-15T14:30:00Z",
+    "versions": [
+      {
+        "version": 1,
+        "file": "blog-2-complete.md",
+        "date": "2023-06-15T14:30:00Z",
+        "comment": "Versión inicial"
+      }
+    ],
+    "images": {
+      "current": {
+        "hero": "blog-2/blog-2-hero.png",
+        "section1": "blog-2/blog-2-section1.png"
+      },
+      "history": []
+    }
+  },
+  "blog-3": {
+    "title": "Beginner's Guide to Tropical Bird Watching: Start Your Journey",
+    "current_version": 1,
+    "last_updated": "2023-06-15T14:30:00Z",
+    "versions": [
+      {
+        "version": 1,
+        "file": "blog-3-complete.md",
+        "date": "2023-06-15T14:30:00Z",
+        "comment": "Versión inicial"
+      }
+    ],
+    "images": {
+      "current": {
+        "hero": "blog-3/blog-3-hero.png"
+      },
+      "history": []
+    }
+  },
+  "blog-4": {
+    "title": ""Behind the Scenes: A Day in the Life of a Panama Bird Guide",
+    "current_version": 1,
+    "last_updated": "2023-06-15T14:30:00Z",
+    "versions": [
+      {
+        "version": 1,
+        "file": "blog-4-complete.md", 
+        "date": "2023-06-15T14:30:00Z",
+        "comment": "Versión inicial"
+      }
+    ],
+    "images": {
+      "current": {
+        "hero": "blog-4/blog-4-hero.png"
+      },
+      "history": []
+    }
+  },
+  "blog-5": {
+    "title": "Seasonal Bird Watching Guide: When to Visit Panama",
+    "current_version": 1,
+    "last_updated": "2023-06-15T14:30:00Z",
+    "versions": [
+      {
+        "version": 1,
+        "file": "blog-5-complete.md",
+        "date": "2023-06-15T14:30:00Z",
+        "comment": "Versión inicial"
+      }
+    ],
+    "images": {
+      "current": {
+        "hero": "blog-5/blog-5-hero.png"
+      },
+      "history": []
+    }
+  }
+} 

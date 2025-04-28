@@ -1,0 +1,101 @@
+# Task ID: 14
+# Title: Implement Planning Library and Media Management Frontend
+# Status: done
+# Dependencies: 8, 11, 12
+# Priority: medium
+# Description: Create the planning library and media management pages and components in the frontend.
+# Details:
+1. Create planning library components in src/features/planning-library/components/
+   - PlanningDocumentList.tsx
+   - UploadForm.tsx
+2. Implement planning library hooks in src/features/planning-library/hooks/
+   - usePlanningDocuments.ts
+3. Create planning library pages in src/features/planning-library/pages/
+   - PlanningLibraryPage.tsx
+   - UploadDocumentPage.tsx
+4. Create media library components in src/features/media-library/components/
+   - MediaAssetList.tsx
+   - MediaUploadForm.tsx
+   - MediaAssetCard.tsx
+   - MediaRequirementPlaceholder.tsx
+   - MediaNeedsList.tsx
+   - AddMediaRequirementDialog.tsx
+5. Implement media library hooks in src/features/media-library/hooks/
+   - useMediaAssets.ts
+   - useMediaNeeds.ts
+6. Create media library pages in src/features/media-library/pages/
+   - MediaLibraryPage.tsx
+   - UploadMediaPage.tsx
+   - MediaNeedsPage.tsx
+7. Use react-query for data fetching and mutations
+8. Implement file upload functionality with progress indicators
+9. Add loading and error states
+
+# Test Strategy:
+Test document and media upload functionality. Verify that files are correctly displayed after upload. Test media requirement creation and management. Verify that the pages update when the active campaign changes.
+
+# Subtasks:
+## 1. Implement Planning Library Core Components and Hooks [done]
+### Dependencies: None
+### Description: Create the foundational components and hooks for the planning library feature, including document listing and data fetching functionality.
+### Details:
+1. Create `usePlanningDocuments.ts` hook in src/features/planning-library/hooks/ that uses react-query to fetch planning documents from the API
+2. Implement loading, error, and success states in the hook
+3. Create `PlanningDocumentList.tsx` component that displays planning documents in a list/grid format
+4. Add filtering and sorting capabilities to the document list
+5. Implement skeleton loaders for loading states
+6. Add error handling with user-friendly error messages
+7. Test the hook with mock data and verify the component renders correctly in different states
+
+## 2. Implement Planning Library Pages and Upload Functionality [done]
+### Dependencies: 14.1
+### Description: Create the planning library pages and document upload functionality with progress indicators.
+### Details:
+1. Create `PlanningLibraryPage.tsx` that integrates the PlanningDocumentList component
+2. Implement `UploadForm.tsx` component with file input, validation, and metadata fields
+3. Add progress indicator for file uploads using appropriate libraries
+4. Create `UploadDocumentPage.tsx` that uses the UploadForm component
+5. Implement the document upload mutation in usePlanningDocuments.ts using react-query
+6. Add navigation between the pages
+7. Test file upload functionality with various file types and sizes
+8. Verify that upload progress is displayed correctly
+
+## 3. Implement Media Library Core Components and Hooks [done]
+### Dependencies: None
+### Description: Create the foundational components and hooks for the media library feature, including media asset listing and data fetching.
+### Details:
+1. Create `useMediaAssets.ts` hook in src/features/media-library/hooks/ using react-query for fetching media assets
+2. Implement `MediaAssetCard.tsx` component to display individual media items with thumbnails and metadata
+3. Create `MediaAssetList.tsx` component that displays a grid of MediaAssetCard components
+4. Add filtering and search functionality for media assets
+5. Implement loading states with skeleton loaders
+6. Add error handling with appropriate user feedback
+7. Test the components with various media types (images, videos, etc.)
+8. Verify responsive behavior on different screen sizes
+
+## 4. Implement Media Upload and Library Page [done]
+### Dependencies: 14.3
+### Description: Create the media upload functionality and main media library page with proper integration of components.
+### Details:
+1. Create `MediaUploadForm.tsx` component with file input, validation, and metadata fields
+2. Implement file upload mutation in useMediaAssets.ts using react-query
+3. Add upload progress indicator and success/error feedback
+4. Create `UploadMediaPage.tsx` that integrates the MediaUploadForm
+5. Implement `MediaLibraryPage.tsx` that uses the MediaAssetList component
+6. Add navigation between pages
+7. Test upload functionality with various media types and sizes
+8. Verify that uploaded media appears correctly in the media library
+
+## 5. Implement Media Needs Management [done]
+### Dependencies: 14.3, 14.4
+### Description: Create the media needs tracking functionality, including listing, adding, and managing media requirements.
+### Details:
+1. Create `useMediaNeeds.ts` hook for fetching and managing media requirements
+2. Implement `MediaRequirementPlaceholder.tsx` component to represent unfulfilled media needs
+3. Create `MediaNeedsList.tsx` component to display all media requirements
+4. Implement `AddMediaRequirementDialog.tsx` with form fields for creating new media requirements
+5. Create `MediaNeedsPage.tsx` that integrates these components
+6. Add functionality to link existing media assets to requirements
+7. Implement status tracking for media requirements (pending, fulfilled, etc.)
+8. Test the complete workflow of creating, viewing, and fulfilling media requirements
+

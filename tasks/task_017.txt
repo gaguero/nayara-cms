@@ -1,0 +1,182 @@
+# Task ID: 17
+# Title: Deploy Backend Infrastructure to Railway
+# Status: pending
+# Dependencies: 16
+# Priority: high
+# Description: Set up and deploy the NestJS backend, PostgreSQL database, and storage volume to Railway cloud platform using Railway CLI and web interface.
+# Details:
+This task involves deploying our application infrastructure to Railway cloud platform. Follow these steps:
+
+1. Install Railway CLI: `npm install -g @railway/cli`
+
+2. Login to Railway: `railway login`
+
+3. Initialize a new Railway project: `railway init`
+
+4. Set up PostgreSQL service:
+   - Add a PostgreSQL service: `railway add`
+   - Select PostgreSQL from the options
+   - Note the connection string for later use
+
+5. Deploy NestJS backend:
+   - Navigate to the backend directory
+   - Link to Railway project: `railway link`
+   - Configure environment variables:
+     - DATABASE_URL (from PostgreSQL service)
+     - JWT_SECRET
+     - Other required environment variables
+   - Deploy the service: `railway up`
+
+6. Set up persistent storage volume:
+   - Create a volume via Railway dashboard
+   - Attach the volume to the NestJS service
+   - Configure the mount path in service settings
+
+7. Configure domain and HTTPS:
+   - Generate a custom domain in Railway dashboard
+   - Ensure HTTPS is enabled
+
+8. Set up continuous deployment:
+   - Connect Railway to the GitHub repository
+   - Configure automatic deployments for the main branch
+
+9. Monitor the deployment and check logs for any issues
+
+10. Document all service URLs, connection strings, and configuration details in the project documentation.
+
+# Test Strategy:
+Verify the deployment with the following tests:
+
+1. API Endpoint Testing:
+   - Use Postman or curl to test key API endpoints
+   - Verify that all endpoints return expected responses
+   - Test authentication flows with JWT tokens
+
+2. Database Connection:
+   - Confirm the backend can connect to PostgreSQL
+   - Run a simple query to verify data persistence
+   - Test database migrations if applicable
+
+3. Storage Volume:
+   - Upload a test file to verify storage functionality
+   - Confirm the file persists after service restarts
+
+4. Environment Variables:
+   - Verify all environment variables are correctly set
+   - Test that sensitive information is properly secured
+
+5. Performance Check:
+   - Measure response times for critical endpoints
+   - Ensure they meet performance requirements
+
+6. Error Handling:
+   - Intentionally trigger errors to verify proper error responses
+   - Check that errors are properly logged
+
+7. Continuous Deployment:
+   - Make a small change to the codebase
+   - Push to the main branch
+   - Verify automatic deployment occurs
+
+8. Documentation:
+   - Ensure all deployment details are documented
+   - Include troubleshooting steps for common issues
+
+# Subtasks:
+## 1. Set up Railway CLI and initialize project [done]
+### Dependencies: None
+### Description: Install Railway CLI, authenticate, and create a new Railway project for the application deployment
+### Details:
+Implementation steps:
+1. Install Railway CLI globally using npm: `npm install -g @railway/cli`
+2. Authenticate with Railway account: `railway login` (this will open a browser window for authentication)
+3. Initialize a new Railway project: `railway login`
+4. Verify successful initialization by checking if a `.railway` directory was created
+5. Document the project ID and other relevant information
+
+Testing approach:
+- Verify CLI installation by running `railway --version`
+- Confirm successful login by running `railway whoami`
+- Ensure project initialization was successful by checking if the project appears in the Railway dashboard
+
+## 2. Provision and configure PostgreSQL database [done]
+### Dependencies: 17.1
+### Description: Set up a PostgreSQL database service in Railway and obtain connection credentials
+### Details:
+Implementation steps:
+1. Add a PostgreSQL service to the project: `railway add`
+2. Select PostgreSQL from the available service options
+3. Wait for the service to be provisioned
+4. Retrieve the database connection string: `railway variables get DATABASE_URL`
+5. Save the connection string securely for use in the backend deployment
+6. Configure any database-specific settings through the Railway dashboard (if needed)
+
+Testing approach:
+- Verify the PostgreSQL service is running in the Railway dashboard
+- Test the connection string with a simple database client
+- Run a basic query to confirm database accessibility
+
+## 3. Deploy NestJS backend to Railway [pending]
+### Dependencies: 17.1, 17.2
+### Description: Configure and deploy the NestJS backend application to Railway with proper environment variables
+### Details:
+Implementation steps:
+1. Navigate to the backend directory in the project
+2. Link the directory to the Railway project: `railway link`
+3. Configure required environment variables:
+   - Set DATABASE_URL: `railway variables set DATABASE_URL=<connection-string-from-subtask-2>`
+   - Set JWT_SECRET: `railway variables set JWT_SECRET=<secure-random-string>`
+   - Set any other required environment variables for the application
+4. Deploy the backend service: `railway up`
+5. Monitor the deployment logs for any errors
+6. Note the service URL provided after successful deployment
+
+Testing approach:
+- Monitor deployment logs for successful build and startup
+- Test basic API endpoints to verify the service is running correctly
+- Check environment variables are correctly set using Railway dashboard
+
+## 4. Set up persistent storage volume [pending]
+### Dependencies: 17.3
+### Description: Create and attach a persistent storage volume to the NestJS service for file storage
+### Details:
+Implementation steps:
+1. Access the Railway dashboard in a web browser
+2. Navigate to the project and select the NestJS service
+3. Go to the 'Volumes' tab and create a new volume
+4. Specify an appropriate size for the volume (e.g., 1GB)
+5. Configure the mount path (e.g., `/app/uploads` or as required by the application)
+6. Save the volume configuration
+7. Restart the service to apply the volume attachment: `railway service restart`
+8. Verify the volume is correctly mounted
+
+Testing approach:
+- Check service logs to confirm volume mounting
+- Test file upload functionality in the application
+- Verify files persist after service restarts
+
+## 5. Configure domain, HTTPS, and continuous deployment [pending]
+### Dependencies: 17.3, 17.4
+### Description: Set up custom domain, HTTPS, and configure GitHub integration for continuous deployment
+### Details:
+Implementation steps:
+1. In the Railway dashboard, navigate to the NestJS service settings
+2. Generate a custom domain for the service
+3. Ensure HTTPS is enabled for the domain
+4. Connect Railway to the GitHub repository:
+   - Go to project settings
+   - Select 'GitHub' integration
+   - Authorize Railway to access the repository
+   - Select the repository containing the NestJS backend
+5. Configure automatic deployments:
+   - Specify the main branch for deployment
+   - Configure build settings if necessary
+6. Document all service URLs, connection details, and configuration in the project documentation
+7. Test the CI/CD pipeline by making a small change to the repository
+
+Testing approach:
+- Verify the custom domain resolves to the application
+- Confirm HTTPS is working by checking the certificate
+- Test the CI/CD pipeline by pushing a change and verifying automatic deployment
+- Create comprehensive documentation with all access details
+
