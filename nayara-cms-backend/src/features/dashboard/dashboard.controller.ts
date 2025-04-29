@@ -21,7 +21,7 @@ import { Request } from 'express'; // Import Request type
 
 // Interface to represent the user object attached by JwtAuthGuard
 interface AuthenticatedUser {
-  id: number;
+  id: string; // Changed to string to match UUID from User model
   // Add other properties if present in JWT payload (e.g., email, roles)
 }
 
@@ -31,12 +31,16 @@ interface RequestWithUser extends Request {
 }
 
 // DTO for Swagger documentation of the response body
+// Updated to match service response
 class DashboardSummaryDto {
   @ApiProperty({ description: 'Number of content items in the campaign' })
-  contentItemCount: number;
+  contentCount: number;
 
-  @ApiProperty({ description: 'Number of pending media requirements' })
-  pendingMediaNeedsCount: number;
+  @ApiProperty({ description: 'Number of media assets in the campaign' })
+  mediaCount: number;
+
+  @ApiProperty({ description: 'Number of planning documents in the campaign' })
+  planningDocCount: number;
 }
 
 // Applying the controller prefix and authentication guard
@@ -53,7 +57,7 @@ export class DashboardController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Successfully retrieved dashboard summary.',
-    type: DashboardSummaryDto, // Document the response shape
+    type: DashboardSummaryDto, // Documents the updated response shape
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -79,13 +83,14 @@ export class DashboardController {
     @Param('campaignId', new ParseUUIDPipe({ version: '4' })) campaignId: string,
     @Req() req: RequestWithUser, // Use Req decorator to access request object
   ): Promise<DashboardSummaryDto> { // Ensure method returns the documented DTO type
-    const userId = req.user?.id; // Safely access user ID from request
+    const userId = req.user?.id; // userId is now string
 
     if (!userId) {
       // This should technically not happen if JwtAuthGuard is working correctly
       throw new ForbiddenException('Authentication token is invalid or missing user ID.');
     }
 
+    // Service method now expects string userId and returns the correct shape
     return this.dashboardService.getCampaignSummary(campaignId, userId);
   }
 } 
