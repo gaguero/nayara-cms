@@ -31,5 +31,6 @@ import { PlanningLibraryModule } from './features/planning-library/planning-libr
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}
