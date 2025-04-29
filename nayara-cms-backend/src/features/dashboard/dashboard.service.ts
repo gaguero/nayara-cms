@@ -11,7 +11,10 @@ import { PrismaService } from '../../core/prisma.service'; // Assuming prisma se
 export class DashboardService {
   private readonly logger = new Logger(DashboardService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    // Assuming userId is passed from an auth guard/decorator
+  ) {}
 
   /**
    * Retrieves summary statistics for a given campaign after verifying authorization.
@@ -24,59 +27,42 @@ export class DashboardService {
    * @throws {ForbiddenException} If the user is not authorized for the campaign.
    * @throws {InternalServerErrorException} If there is a database error.
    */
-  async getCampaignSummary(
-    campaignId: string,
-    userId: number, // Assuming user ID is a number
-  ): Promise<{
-    contentItemCount: number;
-    pendingMediaNeedsCount: number;
-  }> {
-    this.logger.log(
-      `Fetching summary for campaign ID: ${campaignId} by user ID: ${userId}`,
-    );
-    try {
-      // Authorization Check:
-      // TODO: Prisma schema uses Int ID for Campaign, need to align controller/service or schema
-      // Temporarily parsing, but this needs a consistent fix.
-      const campaignIdInt = parseInt(campaignId, 10);
-      if (isNaN(campaignIdInt)) {
-        throw new NotFoundException(`Invalid Campaign ID format: ${campaignId}`);
-      }
+  async getCampaignSummary(campaignId: string, userId: string) {
+    // 1. Verify campaign exists and user has access (owns it)
+    const campaign = await this.prisma.campaign.findUnique({
+      where: { id: campaignId }, // Use string ID
+      select: { createdById: true }, // Select correct field
+    });
 
-      const campaign = await this.prisma.campaign.findUnique({
-        where: { id: campaignIdInt }, // Use parsed int ID
-        select: { userId: true }, // Only select needed field
-      });
-
-      if (!campaign) {
-        throw new NotFoundException(`Campaign with ID ${campaignId} not found.`);
-      }
-
-      // Simple check: is the requesting user the owner?
-      // TODO: Expand authorization logic if necessary (e.g., team members)
-      if (campaign.userId !== userId) {
-        throw new ForbiddenException(
-          'You are not authorized to view this campaign dashboard.',
-        );
-      }
-
-      // Placeholder implementation
-      const contentItemCount = 0; // await this.prisma.contentItem.count({ where: { campaignId } });
-      const pendingMediaNeedsCount = 0; // await this.prisma.mediaRequirement.count({ where: { campaignId, status: 'pending' } });
-
-      return { contentItemCount, pendingMediaNeedsCount };
-    } catch (error) {
-      if (
-        error instanceof ForbiddenException ||
-        error instanceof NotFoundException
-      ) {
-        throw error; // Re-throw known exceptions
-      }
-      this.logger.error(
-        `Failed to retrieve campaign summary for campaign ID ${campaignId}: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Failed to retrieve campaign summary.');
+    if (!campaign) {
+      throw new NotFoundException(`Campaign with ID "${campaignId}" not found.`);
     }
+
+    // Check if the user requesting the dashboard owns the campaign
+    if (campaign.createdById !== userId) { // Use correct field
+      throw new ForbiddenException('You do not have access to this campaign.');
+    }
+
+    // 2. Aggregate statistics (example)
+    const contentCount = await this.prisma.contentItem.count({
+      where: { campaignId: campaignId },
+    });
+
+    const mediaCount = await this.prisma.mediaAsset.count({
+      where: { campaignId: campaignId },
+    });
+
+    const planningDocCount = await this.prisma.planningDocument.count({
+      where: { campaignId: campaignId },
+    });
+
+    // Add more complex aggregations as needed
+
+    return {
+      contentCount,
+      mediaCount,
+      planningDocCount,
+      // ... other stats
+    };
   }
 } 

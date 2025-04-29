@@ -38,7 +38,7 @@ export class ContentManagementService {
     });
   }
 
-  async findOne(campaignId: string, id: string): Promise<ContentItem | null> {
+  async findOne(campaignId: string, id: string): Promise<ContentItem> {
     const contentItem = await this.prisma.contentItem.findUnique({
       where: {
         id: id,
@@ -48,9 +48,10 @@ export class ContentManagementService {
 
     if (!contentItem) {
       throw new NotFoundException(
-        `ContentItem with ID "${id}" not found in campaign "${campaignId}"`, 
+        `ContentItem with ID "${id}" not found in campaign "${campaignId}"`,
       );
     }
+    // Now guaranteed to return ContentItem, not null
     return contentItem;
   }
 
